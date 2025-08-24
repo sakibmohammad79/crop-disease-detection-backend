@@ -15,93 +15,144 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  email       String   @unique
-  password    String
-  name        String
-  role        Role     @default(FARMER)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  images      Image[]
-  
+  id String @id @default(ulid())
+  email String @unique
+  password String
+  name String
+  phone String?
+  role Role  @default(FARMER)
+  isActive Boolean @default(true)
+  isDeleted Boolean @default(false)
+
+  // Common profile fields
+  photo String?
+  address String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+
+  // Relations - role specific profiles
+  farmerProfile FarmerProfile?
+  adminProfile  AdminProfile?
+
   @@map("users")
 }
 
-model Image {
-  id             Int      @id @default(autoincrement())
-  filename       String
-  originalName   String
-  mimetype       String
-  size           Int
-  path           String
-  uploadedAt     DateTime @default(now())
+model FarmerProfile {
+  id String @id @default(ulid())
   
-  // Image metadata
-  width          Int?
-  height         Int?
-  gpsLatitude    Float?
-  gpsLongitude   Float?
-  capturedAt     DateTime?
+  // Farmer specific fields
+  cropTypes String[]
+  farmSize Float? // in acres/hectares
+  farmingExperience Int? // years of experience
+  farmLocation String?
+  soilType String?
+  irrigationType String?
   
   // Relations
-  userId         Int
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  predictions    Prediction[]
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  @@map("images")
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("farmer_profiles")
 }
 
-model Disease {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  scientificName String?
-  description String?
-  symptoms    String[]
-  causes      String[]
-  treatment   String?
-  prevention  String?
-  severity    Severity @default(MEDIUM)
-  crops       String[] // Which crops this disease affects
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model AdminProfile {
+  id String @id @default(ulid())
+  
+  // Admin specific fields
+  department String?
+  designation String?
   
   // Relations
-  predictions Prediction[]
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  @@map("diseases")
-}
-
-model Prediction {
-  id          Int      @id @default(autoincrement())
-  confidence  Float
-  isHealthy   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
-  // Additional prediction data
-  boundingBox Json?    // For object detection
-  affectedArea Float?  // Percentage of affected area
-  
-  // Relations
-  imageId     Int
-  image       Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  diseaseId   Int?
-  disease     Disease? @relation(fields: [diseaseId], references: [id])
-  
-  @@map("predictions")
+  @@map("admin_profiles")
 }
 
 enum Role {
   ADMIN
   FARMER
-  RESEARCHER
+  // RESEARCHER
 }
 
-enum Severity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
+// Commented out models for future use
+// model Image {
+//   id             Int      @id @default(autoincrement())
+//   filename       String
+//   originalName   String
+//   mimetype       String
+//   size           Int
+//   path           String
+//   uploadedAt     DateTime @default(now())
+  
+//   // Image metadata
+//   width          Int?
+//   height         Int?
+//   gpsLatitude    Float?
+//   gpsLongitude   Float?
+//   capturedAt     DateTime?
+  
+//   // Relations
+//   userId         String
+//   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   predictions    Prediction[]
+  
+//   @@map("images")
+// }
+
+// model Disease {
+//   id          Int      @id @default(autoincrement())
+//   name        String   @unique
+//   scientificName String?
+//   description String?
+//   symptoms    String[]
+//   causes      String[]
+//   treatment   String?
+//   prevention  String?
+//   severity    Severity @default(MEDIUM)
+//   crops       String[] // Which crops this disease affects
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+  
+//   // Relations
+//   predictions Prediction[]
+  
+//   @@map("diseases")
+// }
+
+// model Prediction {
+//   id          Int      @id @default(autoincrement())
+//   confidence  Float
+//   isHealthy   Boolean  @default(false)
+//   createdAt   DateTime @default(now())
+  
+//   // Additional prediction data
+//   boundingBox Json?    // For object detection
+//   affectedArea Float?  // Percentage of affected area
+  
+//   // Relations
+//   imageId     Int
+//   image       Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
+//   diseaseId   Int?
+//   disease     Disease? @relation(fields: [diseaseId], references: [id])
+  
+//   @@map("predictions")
+// }
+
+// enum Severity {
+//   LOW
+//   MEDIUM
+//   HIGH
+//   CRITICAL
+// }
