@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -23,11 +18,9 @@ model User {
   role Role  @default(FARMER)
   isActive Boolean @default(true)
   isDeleted Boolean @default(false)
-
   // Common profile fields
   photo String?
   address String?
-
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -42,19 +35,15 @@ model User {
 
 model FarmerProfile {
   id String @id @default(ulid())
-  
-  // Farmer specific fields
   cropTypes String[]
   farmSize Float? // in acres/hectares
   farmingExperience Int? // years of experience
   farmLocation String?
   soilType String?
   irrigationType String?
-  
   // Relations
   userId String @unique
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -64,15 +53,11 @@ model FarmerProfile {
 
 model AdminProfile {
   id String @id @default(ulid())
-  
-  // Admin specific fields
   department String?
   designation String?
-  
   // Relations
   userId String @unique
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

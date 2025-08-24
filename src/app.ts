@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import { rateLimit } from 'express-rate-limit';
 import dotenv from 'dotenv';
 import compression from 'compression';
+import router from './app/routes';
+
+
 
 // Load environment variables
 dotenv.config();
@@ -41,7 +44,6 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Body Parsing & Compression
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 app.use(compression());
 
 // Health check endpoint
@@ -61,6 +63,9 @@ app.get('/', (req: Request, res: Response) => {
     environment: process.env.NODE_ENV || 'development',
   });
 });
+
+//application routes
+app.use('/api/v1', router);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
