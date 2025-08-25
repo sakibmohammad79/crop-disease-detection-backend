@@ -7,7 +7,16 @@
 //       userId: string;
 //       email: string;
 //       role: string;
-//       // প্রয়োজনে অন্য fields
 //     };
 //   }
 // }
+
+declare namespace Express {
+  interface Request {
+    user?: {
+      userId: string;
+      email: string;
+      role: string;
+    };
+  }
+}

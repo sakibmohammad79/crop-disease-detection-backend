@@ -39,3 +39,4 @@ const server = app.listen(config.app.port, () => {
   console.log(`📍 Environment: ${config.app.port}`);
   console.log(`🌐 Local URL: http://localhost:${config.app.port}`);
 });
+

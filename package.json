@@ -7,7 +7,8 @@
     "postinstall": "prisma generate",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
