@@ -10,13 +10,17 @@ import {
   updateProfileSchema,
 } from './auth.validation';
 import { validateRequest } from '../../middlewares/validateRequest';
+import { authGuard } from '../../middlewares/authGuard';
 import { roleGuard } from '../../middlewares/roleGuard';
 import { Role } from '../../../generated/prisma';
 
-
 const router = Router();
 
-// Public routes
+/**
+ * ============================
+ * 🔓 Public routes (no auth required)
+ * ============================
+ */
 router.post(
   '/register/farmer',
   validateRequest(registerFarmerSchema),
@@ -34,8 +38,12 @@ router.post(
   authController.logout
 );
 
-// Protected routes (require authentication)
-// router.use(authGuard); // Apply auth guard to all routes below
+/**
+ * ============================
+ * 🔐 Protected routes (auth required)
+ * ============================
+ */
+router.use(authGuard); // apply to all routes below this line
 
 router.get(
   '/profile',
@@ -59,7 +67,11 @@ router.post(
   authController.deactivateAccount
 );
 
-// Admin only routes
+/**
+ * ============================
+ * 👑 Admin-only routes
+ * ============================
+ */
 router.post(
   '/register/admin',
   roleGuard([Role.ADMIN]),

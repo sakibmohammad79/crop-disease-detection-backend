@@ -11,7 +11,6 @@ import type {
 } from './auth.validation';
 import prisma from '../../utils/prisma';
 
-// Register farmer
 export const registerFarmer = async (userData: RegisterFarmerInput) => {
   const { farmerProfile, ...userInfo } = userData;
 
@@ -23,7 +22,6 @@ export const registerFarmer = async (userData: RegisterFarmerInput) => {
     data: {
       ...userInfo,
       password: hashedPassword,
-      role: 'FARMER',
       farmerProfile: {
         create: farmerProfile
       }
@@ -36,29 +34,12 @@ export const registerFarmer = async (userData: RegisterFarmerInput) => {
   // Remove password from response
   const { password, ...userWithoutPassword } = user;
 
-  // Generate tokens
-  const accessToken = generateToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  const refreshToken = generateRefreshToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
   return {
     user: userWithoutPassword,
-    tokens: {
-      accessToken,
-      refreshToken,
-    }
   };
 };
 
-// Register admin (only by existing admin)
+
 export const registerAdmin = async (userData: RegisterAdminInput) => {
   const { adminProfile, ...userInfo } = userData;
 

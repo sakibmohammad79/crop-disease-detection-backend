@@ -10,17 +10,6 @@ interface JwtPayload {
   role: string;
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        email: string;
-        role: string;
-      };
-    }
-  }
-}
 
 export const authGuard = async (req: Request, res: Response, next: NextFunction) => {
   try {
