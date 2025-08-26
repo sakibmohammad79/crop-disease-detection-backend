@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { rateLimit } from 'express-rate-limit';
 import dotenv from 'dotenv';
 import compression from 'compression';
+import cookieParser from "cookie-parser";
 import router from './app/routes';
 
 
@@ -37,7 +38,7 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
-
+app.use(cookieParser());
 // Logging 
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 

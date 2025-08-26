@@ -1,5 +1,5 @@
 import { comparePassword, hashPassword } from '../../utils/bcrypt';
-import { generateRefreshToken, generateToken } from '../../utils/jwt';
+import { generateRefreshToken, generateToken, verifyRefreshToken, verifyToken } from '../../utils/jwt';
 import type { 
   LoginInput, 
   RegisterFarmerInput, 
@@ -9,6 +9,8 @@ import type {
 import prisma from '../../utils/prisma';
 import { Secret } from 'jsonwebtoken';
 import { config } from '../../config';
+import { token } from 'morgan';
+import { email } from 'zod';
 
 export const registerFarmer = async (userData: RegisterFarmerInput) => {
   const { farmerProfile, ...userInfo } = userData;
@@ -113,8 +115,8 @@ export const loginUser = async (credentials: LoginInput) => {
   
   const refreshToken = generateRefreshToken(
     jwtPayload,
-    config.jwt.access_token_secret as Secret,
-    config.jwt.access_token_secret_expires_in as string
+    config.jwt.refresh_token_secret as Secret,
+    config.jwt.refresh_token_secret_expires_in as string
   );
 
   return {
@@ -123,6 +125,46 @@ export const loginUser = async (credentials: LoginInput) => {
       needPasswordChange: user.address,
   };
 };
+
+
+export const refreshToken = async(token: string) => {
+  
+  let decodedData;
+  
+  try {
+    decodedData =  verifyRefreshToken(
+      token,
+      config.jwt.refresh_token_secret as Secret
+    );
+  } catch (error) {
+    throw new Error("You are not authorized!");
+  }
+
+  //check if user delete
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: decodedData?.email,
+      isActive: true,
+      isDeleted: false
+    },
+  });
+  
+  const jwtPayload = {
+    userId: userData.id,
+    email: userData.email,
+    role: userData.role,
+  };
+  const accessToken = generateToken(
+    jwtPayload,
+    config.jwt.access_token_secret as Secret,
+    config.jwt.access_token_secret_expires_in as string
+  );
+
+  return {
+    accessToken,
+    needPasswordChange: userData.address,
+  };
+}
 
 // Get user profile
 export const getUserProfile = async (userId: string | undefined) => {

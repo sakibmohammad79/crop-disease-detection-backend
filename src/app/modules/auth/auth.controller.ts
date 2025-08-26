@@ -2,8 +2,7 @@
 import { Request, Response } from 'express';
 import { sendResponse } from '../../utils/response';
 import * as authService from './auth.service';
-
-
+import { config } from '../../config';
 // Register farmer
 export const registerFarmer = async (req: Request, res: Response) => {
   try {
@@ -55,7 +54,7 @@ export const login = async (req: Request, res: Response) => {
     const result = await authService.loginUser(credentials);
     const {refreshToken} = result;
     res.cookie("refreshToken", refreshToken, { httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',})
+    secure: config.app.nodeEnv === 'production',})
     sendResponse(res, {
       statusCode: 200,
       success: true,
@@ -70,6 +69,26 @@ export const login = async (req: Request, res: Response) => {
       statusCode: 401,
       success: false,
       message: error.message || 'Login failed',
+    });
+  }
+};
+//refresh token
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+  
+    const { refreshToken } = req.cookies;
+    const result = await authService.refreshToken(refreshToken);
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Access token genereated successfully!",
+      data: result,
+    });
+  } catch (error: any) {
+    sendResponse(res, {
+      statusCode: 401,
+      success: false,
+      message: error.message || 'Failed to generate access token.',
     });
   }
 };

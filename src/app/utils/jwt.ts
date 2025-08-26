@@ -27,10 +27,10 @@ export const generateRefreshToken = (jwtPayload: JwtPayload, secret: Secret, exp
 
 
 
-export const verifyToken = (token: string): JwtPayload => {
-  return jwt.verify(token, config.jwt.access_token_secret as Secret) as JwtPayload; 
+export const verifyToken = (token: string, secret: Secret): JwtPayload => {
+  return jwt.verify(token, secret) as JwtPayload; 
 };
 
-export const verifyRefreshToken = (token: string): JwtPayload => {
-  return jwt.verify(token, config.jwt.refresh_token_secret as Secret) as JwtPayload; 
+export const verifyRefreshToken = (token: string, secret: Secret): JwtPayload => {
+  return jwt.verify(token, secret as Secret) as JwtPayload; 
 };
