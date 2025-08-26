@@ -7,6 +7,8 @@ import type {
   ChangePasswordInput 
 } from './auth.validation';
 import prisma from '../../utils/prisma';
+import { Secret } from 'jsonwebtoken';
+import { config } from '../../config';
 
 export const registerFarmer = async (userData: RegisterFarmerInput) => {
   const { farmerProfile, ...userInfo } = userData;
@@ -76,10 +78,6 @@ export const loginUser = async (credentials: LoginInput) => {
       isActive: true,
       isDeleted: false 
     },
-    include: {
-      farmerProfile: true,
-      adminProfile: true,
-    }
   });
 
   if (!user) {
@@ -98,28 +96,31 @@ export const loginUser = async (credentials: LoginInput) => {
     data: { lastLoginAt: new Date() }
   });
 
-  // Remove password from response
-  const { password: userPassword, ...userWithoutPassword } = user;
 
-  // Generate tokens
-  const accessToken = generateToken({
+  // Generate access token
+   const jwtPayload = {
     userId: user.id,
     email: user.email,
     role: user.role,
-  });
+  };
 
-  const refreshToken = generateRefreshToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  const accessToken = generateToken(
+    jwtPayload,
+    config.jwt.access_token_secret as Secret,
+    config.jwt.access_token_secret_expires_in as string
+  );
+  // Generate refresh token
+  
+  const refreshToken = generateRefreshToken(
+    jwtPayload,
+    config.jwt.access_token_secret as Secret,
+    config.jwt.access_token_secret_expires_in as string
+  );
 
   return {
-    user: userWithoutPassword,
-    tokens: {
       accessToken,
       refreshToken,
-    }
+      needPasswordChange: user.address,
   };
 };
 

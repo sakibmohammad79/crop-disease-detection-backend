@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+import jwt, {  Secret } from "jsonwebtoken";
+import { config } from '../config';
 
 interface JwtPayload {
   userId: string;
@@ -6,22 +7,30 @@ interface JwtPayload {
   role: string;
 }
 
-export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+
+
+export const generateToken = (jwtPayload: JwtPayload, secret: Secret, exp: string) => {
+  const token = jwt.sign(jwtPayload, secret as string, {
+    algorithm: "HS256",
+    expiresIn: exp,
   });
+  return token;
 };
 
-export const generateRefreshToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+export const generateRefreshToken = (jwtPayload: JwtPayload, secret: Secret, exp: string) => {
+  const token = jwt.sign(jwtPayload, secret as string, {
+    algorithm: "HS256",
+    expiresIn: exp,
   });
+  return token;
 };
+
+
 
 export const verifyToken = (token: string): JwtPayload => {
-  return jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+  return jwt.verify(token, config.jwt.access_token_secret as Secret) as JwtPayload; 
 };
 
 export const verifyRefreshToken = (token: string): JwtPayload => {
-  return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as JwtPayload;
+  return jwt.verify(token, config.jwt.refresh_token_secret as Secret) as JwtPayload; 
 };

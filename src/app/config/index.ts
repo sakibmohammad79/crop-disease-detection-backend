@@ -27,17 +27,11 @@ export const config = {
   cors: {
     allowedOrigins: getEnvArray("ALLOWED_ORIGINS", "http://localhost:3000"),
   },
-  security: {
-    jwt: {
-      access: {
-        secret: getEnv("JWT_SECRET_TOKEN"),
-        expiresIn: getEnv("JWT_SECRET_TOKEN_EXPIRES_IN", "1d"),
-      },
-      refresh: {
-        secret: getEnv("JWT_REFRESH_TOKEN"),
-        expiresIn: getEnv("JWT_REFRESH_TOKEN_EXPIRES_IN", "7d"),
-      },
-    },
+  jwt: {
+    access_token_secret: getEnv("ACCESS_TOKEN_SECRET"),
+    access_token_secret_expires_in: getEnv("ACCESS_TOKEN_SECRET_EXPIRES_IN"),
+    refresh_token_secret: getEnv("REFRESH_TOKEN_SECRET"),
+    refresh_token_secret_expires_in: getEnv("REFRESH_TOKEN_SECRET_EXPIRES_IN"),
   },
   api: {
     key: getEnv("API_KEY"),

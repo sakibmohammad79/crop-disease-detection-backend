@@ -53,12 +53,17 @@ export const login = async (req: Request, res: Response) => {
     const credentials = req.body;
     
     const result = await authService.loginUser(credentials);
-    
+    const {refreshToken} = result;
+    res.cookie("refreshToken", refreshToken, { httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',})
     sendResponse(res, {
       statusCode: 200,
       success: true,
       message: 'Login successful',
-      data: result,
+      data: {
+        accessToken : result.accessToken, 
+        needPasswordChange : result.needPasswordChange
+      },
     });
   } catch (error: any) {
     sendResponse(res, {
