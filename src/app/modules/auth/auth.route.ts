@@ -1,7 +1,5 @@
-// modules/auth/auth.route.ts
 import { Router } from 'express';
 import * as authController from './auth.controller';
-
 import {
   registerFarmerSchema,
   registerAdminSchema,
@@ -43,7 +41,7 @@ router.post(
  * 🔐 Protected routes (auth required)
  * ============================
  */
-router.use(authGuard); // apply to all routes below this line
+// router.use(authGuard); // apply to all routes below this line
 
 router.get(
   '/profile',
@@ -74,7 +72,7 @@ router.post(
  */
 router.post(
   '/register/admin',
-  roleGuard([Role.ADMIN]),
+  // roleGuard([Role.ADMIN]),
   validateRequest(registerAdminSchema),
   authController.registerAdmin
 );

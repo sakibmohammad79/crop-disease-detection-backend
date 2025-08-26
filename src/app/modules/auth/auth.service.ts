@@ -1,8 +1,5 @@
-
-
 import { comparePassword, hashPassword } from '../../utils/bcrypt';
 import { generateRefreshToken, generateToken } from '../../utils/jwt';
-
 import type { 
   LoginInput, 
   RegisterFarmerInput, 
@@ -13,57 +10,56 @@ import prisma from '../../utils/prisma';
 
 export const registerFarmer = async (userData: RegisterFarmerInput) => {
   const { farmerProfile, ...userInfo } = userData;
-
   // Hash password
   const hashedPassword = await hashPassword(userInfo.password);
-
-  // Create user with farmer profile
-  const user = await prisma.user.create({
-    data: {
-      ...userInfo,
-      password: hashedPassword,
-      farmerProfile: {
+   // Create user with farmer profile using transaction
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await prisma.user.create({
+      data: {
+        ...userInfo,
+        password: hashedPassword,
+        farmerProfile: {
         create: farmerProfile
-      }
-    },
-    include: {
+        }
+      },
+      include: {
       farmerProfile: true,
-    }
-  });
-
+      }
+    });
+    return user
+  })
   // Remove password from response
-  const { password, ...userWithoutPassword } = user;
+  const { password, ...userWithoutPassword } = result;
 
   return {
-    user: userWithoutPassword,
+    admin: userWithoutPassword,
   };
 };
 
 
 export const registerAdmin = async (userData: RegisterAdminInput) => {
   const { adminProfile, ...userInfo } = userData;
-
   // Hash password
   const hashedPassword = await hashPassword(userInfo.password);
-
   // Create user with admin profile
-  const user = await prisma.user.create({
+  const result = await prisma.$transaction(async(tx) => {
+    const user = await prisma.user.create({
     data: {
-      ...userInfo,
-      password: hashedPassword,
-      role: 'ADMIN',
-      adminProfile: {
+        ...userInfo,
+        password: hashedPassword,
+        role: 'ADMIN',
+        adminProfile: {
         create: adminProfile || {}
+        }
+      },
+        include: {
+        adminProfile: true,
       }
-    },
-    include: {
-      adminProfile: true,
-    }
-  });
-
+    });
+  return user;
+  })
   // Remove password from response
-  const { password, ...userWithoutPassword } = user;
-
+  const { password, ...userWithoutPassword } = result;
   return {
     user: userWithoutPassword,
   };
