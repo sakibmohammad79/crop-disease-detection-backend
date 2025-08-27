@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// Base user registration schema
-export const registerSchema = z.object({
+//Base user registration schema
+ const registerSchema = z.object({
   body: z.object({
     email: z
       .string()
@@ -25,7 +25,7 @@ export const registerSchema = z.object({
 });
 
 // Farmer registration schema
-export const registerFarmerSchema = z.object({
+ const registerFarmerSchema = z.object({
   body: z.object({
     email: z
       .string()
@@ -73,7 +73,7 @@ export const registerFarmerSchema = z.object({
 });
 
 // Admin registration schema  
-export const registerAdminSchema = z.object({
+ const registerAdminSchema = z.object({
   body: z.object({
     email: z
       .string()
@@ -93,6 +93,7 @@ export const registerAdminSchema = z.object({
       .optional(),
     address: z.string().optional(),
     photo: z.string().url('Invalid photo URL').optional(),
+  
     
     // Admin profile data
     adminProfile: z.object({
@@ -103,7 +104,7 @@ export const registerAdminSchema = z.object({
 });
 
 // Login schema
-export const loginSchema = z.object({
+const loginSchema = z.object({
   body: z.object({
     email: z
       .string()
@@ -116,7 +117,7 @@ export const loginSchema = z.object({
 });
 
 // Change password schema
-export const changePasswordSchema = z.object({
+const changePasswordSchema = z.object({
   body: z.object({
     currentPassword: z
       .string()
@@ -135,7 +136,7 @@ export const changePasswordSchema = z.object({
 });
 
 // Forgot password schema
-export const forgotPasswordSchema = z.object({
+ const forgotPasswordSchema = z.object({
   body: z.object({
     email: z
       .string()
@@ -145,7 +146,7 @@ export const forgotPasswordSchema = z.object({
 });
 
 // Reset password schema
-export const resetPasswordSchema = z.object({
+const resetPasswordSchema = z.object({
   body: z.object({
     token: z
       .string()
@@ -164,7 +165,7 @@ export const resetPasswordSchema = z.object({
 });
 
 // Update profile schema
-export const updateProfileSchema = z.object({
+const updateProfileSchema = z.object({
   body: z.object({
     name: z
       .string()
@@ -189,3 +190,13 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>['body'];
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>['body'];
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>['body'];
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>['body'];
+
+export const AuthValidationSchemas = {
+  registerFarmerSchema,
+  registerAdminSchema,
+  loginSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  updateProfileSchema
+}

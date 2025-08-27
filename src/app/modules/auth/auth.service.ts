@@ -9,8 +9,7 @@ import type {
 import prisma from '../../utils/prisma';
 import { Secret } from 'jsonwebtoken';
 import { config } from '../../config';
-import { token } from 'morgan';
-import { email } from 'zod';
+
 
 export const registerFarmer = async (userData: RegisterFarmerInput) => {
   const { farmerProfile, ...userInfo } = userData;
@@ -78,7 +77,7 @@ export const loginUser = async (credentials: LoginInput) => {
     where: { 
       email,
       isActive: true,
-      isDeleted: false 
+      isDeleted: false ,
     },
   });
 
@@ -122,7 +121,7 @@ export const loginUser = async (credentials: LoginInput) => {
   return {
       accessToken,
       refreshToken,
-      needPasswordChange: user.address,
+      // needPasswordChange: user.needPasswordChange,
   };
 };
 

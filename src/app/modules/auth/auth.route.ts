@@ -1,16 +1,10 @@
 import { Router } from 'express';
 import * as authController from './auth.controller';
-import {
-  registerFarmerSchema,
-  registerAdminSchema,
-  loginSchema,
-  changePasswordSchema,
-  updateProfileSchema,
-} from './auth.validation';
 import { validateRequest } from '../../middlewares/validateRequest';
 import { authGuard } from '../../middlewares/authGuard';
 import { roleGuard } from '../../middlewares/roleGuard';
 import { Role } from '../../../generated/prisma';
+import { AuthValidationSchemas } from './auth.validation';
 
 const router = Router();
 
@@ -21,13 +15,13 @@ const router = Router();
  */
 router.post(
   '/register/farmer',
-  validateRequest(registerFarmerSchema),
+  validateRequest(AuthValidationSchemas.registerFarmerSchema),
   authController.registerFarmer
 );
 
 router.post(
   '/login',
-  validateRequest(loginSchema),
+  validateRequest(AuthValidationSchemas.loginSchema),
   authController.login
 );
 
@@ -46,7 +40,7 @@ router.post(
  * 🔐 Protected routes (auth required)
  * ============================
  */
-// router.use(authGuard); // apply to all routes below this line
+// router.use(authGuard); 
 
 router.get(
   '/profile',
@@ -55,13 +49,13 @@ router.get(
 
 router.put(
   '/profile',
-  validateRequest(updateProfileSchema),
+  validateRequest(AuthValidationSchemas.updateProfileSchema),
   authController.updateProfile
 );
 
 router.post(
   '/change-password',
-  validateRequest(changePasswordSchema),
+  validateRequest(AuthValidationSchemas.changePasswordSchema),
   authController.changePassword
 );
 
@@ -78,7 +72,7 @@ router.post(
 router.post(
   '/register/admin',
   // roleGuard([Role.ADMIN]),
-  validateRequest(registerAdminSchema),
+  validateRequest(AuthValidationSchemas.registerAdminSchema),
   authController.registerAdmin
 );
 
