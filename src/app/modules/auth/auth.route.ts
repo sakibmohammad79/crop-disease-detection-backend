@@ -40,7 +40,7 @@ router.post(
  * 🔐 Protected routes (auth required)
  * ============================
  */
-// router.use(authGuard); 
+router.use(authGuard); 
 
 router.get(
   '/profile',
@@ -71,7 +71,7 @@ router.post(
  */
 router.post(
   '/register/admin',
-  // roleGuard([Role.ADMIN]),
+  roleGuard([Role.ADMIN]),
   validateRequest(AuthValidationSchemas.registerAdminSchema),
   authController.registerAdmin
 );

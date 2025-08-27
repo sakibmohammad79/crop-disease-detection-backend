@@ -61,7 +61,7 @@ export const login = async (req: Request, res: Response) => {
       message: 'Login successful',
       data: {
         accessToken : result.accessToken, 
-        needPasswordChange : result.needPasswordChange
+        // needPasswordChange : result.needPasswordChange,
       },
     });
   } catch (error: any) {

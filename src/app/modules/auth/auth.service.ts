@@ -161,12 +161,12 @@ export const refreshToken = async(token: string) => {
 
   return {
     accessToken,
-    needPasswordChange: userData.address,
+    // needPasswordChange: userData.address,
   };
 }
 
 // Get user profile
-export const getUserProfile = async (userId: string | undefined) => {
+export const getUserProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { 
       id: userId,
