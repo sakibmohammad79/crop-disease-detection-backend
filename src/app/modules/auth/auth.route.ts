@@ -48,7 +48,7 @@ router.get(
 );
 
 router.put(
-  '/profile',
+  '/profile-update',
   validateRequest(AuthValidationSchemas.updateProfileSchema),
   authController.updateProfile
 );

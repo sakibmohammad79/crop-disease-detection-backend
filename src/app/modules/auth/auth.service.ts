@@ -173,10 +173,6 @@ export const getUserProfile = async (userId: string) => {
       isActive: true,
       isDeleted: false 
     },
-    // include: {
-    //   farmerProfile: true,
-    //   adminProfile: true,
-    // },
     select: {
       id: true,
       email: true,
@@ -301,10 +297,6 @@ export const getAllUsers = async (params: {
       where,
       skip,
       take: limit,
-      // include: {
-      //   farmerProfile: true,
-      //   adminProfile: true,
-      // },
       select: {
         id: true,
         email: true,

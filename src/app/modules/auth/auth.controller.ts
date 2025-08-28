@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { sendResponse } from '../../utils/response';
 import * as authService from './auth.service';
 import { config } from '../../config';
+import status from 'http-status';
 // Register farmer
 export const registerFarmer = async (req: Request, res: Response) => {
   try {
@@ -119,19 +120,18 @@ export const getMyProfile = async (req: Request, res: Response) => {
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.userId!;
-    const updateData = req.body;
-    
+    const { name, phone, address, photo } = req.body;
+    const updateData = { name, phone, address, photo };
     const user = await authService.updateUserProfile(userId, updateData);
-    
     sendResponse(res, {
-      statusCode: 200,
+      statusCode: status.OK,
       success: true,
       message: 'Profile updated successfully',
       data: user,
     });
   } catch (error: any) {
     sendResponse(res, {
-      statusCode: 400,
+      statusCode: status.BAD_REQUEST,
       success: false,
       message: error.message || 'Profile update failed',
     });
