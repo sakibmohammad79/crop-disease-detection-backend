@@ -211,19 +211,20 @@ export const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
-// Logout (client side token removal)
-export const logout = async (req: Request, res: Response) => {
+export const forgotPasswordController = async (req: Request, res: Response) => {
   try {
+    const result = await authService.forgotPassword({ email: req.body.email });
     sendResponse(res, {
       statusCode: 200,
-      success: true,
-      message: 'Logout successful',
+      success: result.success,
+      message: result.message,
+      data: result.resetLink ? { resetLink: result.resetLink } : undefined,
     });
   } catch (error: any) {
     sendResponse(res, {
       statusCode: 400,
       success: false,
-      message: 'Logout failed',
+      message: error.message || "Failed to process password reset",
     });
   }
-}
+};

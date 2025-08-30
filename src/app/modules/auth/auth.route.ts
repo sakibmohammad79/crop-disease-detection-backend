@@ -31,8 +31,9 @@ router.post(
 );
 
 router.post(
-  '/logout',
-  authController.logout
+  '/forgot-password',
+  validateRequest(AuthValidationSchemas.forgotPasswordSchema),
+  authController.forgotPasswordController
 );
 
 /**

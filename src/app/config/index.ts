@@ -37,4 +37,17 @@ export const config = {
     key: getEnv("API_KEY"),
     secret: getEnv("API_SECRET"),
   },
+  password: {
+    reset_password_link: getEnv("RESET_PASSWORD_LINK"),
+    reset_password_token_secret: getEnv("RESET_PASSWORD_TOKEN_SECRET"),
+    reset_password_token_exp_in: getEnv("RESET_PASSWORD_EXPIRES_IN")
+  },
+  emailSender: {
+    smtp_user: getEnv("SMTP_USER"),
+    smtp_user_pass: getEnv("SMTP_PASSWORD"),
+    smtp_hos: getEnv("SMTP_HOST"),
+    smtp_port: getEnv("SMTP_PORT"),
+    email_from: getEnv("EMAIL_FROM"),
+    email_from_name : getEnv("EMAIL_FROM_NAME")
+  },
 };

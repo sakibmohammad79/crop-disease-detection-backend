@@ -9,6 +9,7 @@ import type {
 import prisma from '../../utils/prisma';
 import { Secret } from 'jsonwebtoken';
 import { config } from '../../config';
+import emailSender from '../../helpers/emailSender';
 
 
 export const registerFarmer = async (userData: RegisterFarmerInput) => {
@@ -243,13 +244,11 @@ export const changeUserPassword = async (
   if (!user) {
     throw new Error('User not found');
   }
-
   // Verify current password
   const isCurrentPasswordValid = await comparePassword(currentPassword, user.password);
   if (!isCurrentPasswordValid) {
     throw new Error('Current password is incorrect');
   }
-
   // Hash new password
   const hashedNewPassword = await hashPassword(newPassword);
 
@@ -330,5 +329,66 @@ export const getAllUsers = async (params: {
       total,
       totalPages: Math.ceil(total / limit),
     }
+  };
+};
+
+
+export const forgotPassword = async (payload: { email: string }) => {
+  const userData = await prisma.user.findUnique({ 
+    where: {
+      email: payload.email,
+      isActive: true,
+      isDeleted: false,
+    },
+  });
+
+ 
+  if (!userData) {
+    return {
+      success: true,
+      message: "If email exists, reset link has been sent!",
+    };
+  }
+
+  const resetPasswordToken = generateToken(
+    { 
+      email: userData.email, 
+      role: userData.role,
+      userId: userData.id,
+    },
+    config.password.reset_password_token_secret as Secret,
+    config.password.reset_password_token_exp_in as string
+  );
+
+  const resetPasswordLink =
+    config.password.reset_password_link +
+    `?userId=${userData.id}&token=${resetPasswordToken}`;
+
+  // HTML template
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Password Reset Request</h2>
+      <p>Dear ${userData.name || 'User'},</p>
+      <p>You requested to reset your password. Click the button below to reset:</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="${resetPasswordLink}" 
+           style="background-color: #007bff; color: white; padding: 12px 24px; 
+                  text-decoration: none; border-radius: 4px; display: inline-block;">
+          Reset Password
+        </a>
+      </div>
+      <p><strong>This link will expire in ${config.password.reset_password_token_exp_in}.</strong></p>
+      <p>If you didn't request this, please ignore this email.</p>
+      <hr>
+      <p><small>For security, do not share this link with anyone.</small></p>
+    </div>
+  `;
+  
+  await emailSender(userData.email, html);
+
+  return {
+    success: true,
+    message: "If email exists, reset link has been sent!",
+    resetLink: resetPasswordLink, 
   };
 };
