@@ -332,7 +332,7 @@ export const getAllUsers = async (params: {
   };
 };
 
-
+// forgot password
 export const forgotPassword = async (payload: { email: string }) => {
   const userData = await prisma.user.findUnique({ 
     where: {
