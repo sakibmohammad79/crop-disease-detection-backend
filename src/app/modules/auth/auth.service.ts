@@ -228,7 +228,12 @@ export const changeUserPassword = async (
   userId: string, 
   passwordData: ChangePasswordInput
 ) => {
-  const { currentPassword, newPassword } = passwordData;
+  const { currentPassword, newPassword, confirmPassword } = passwordData;
+
+  // Validate confirm password
+  if (newPassword !== confirmPassword) {
+    throw new Error("New password and confirm password don't match");
+  }
 
   // Get current user
   const user = await prisma.user.findUnique({
