@@ -36,6 +36,12 @@ router.post(
   authController.forgotPasswordController
 );
 
+router.post(
+  '/reset-password',
+  validateRequest(AuthValidationSchemas.resetPasswordSchema),
+  authController.resetPassword
+);
+
 /**
  * ============================
  * 🔐 Protected routes (auth required)

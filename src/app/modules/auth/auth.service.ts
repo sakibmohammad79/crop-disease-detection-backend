@@ -392,3 +392,66 @@ export const forgotPassword = async (payload: { email: string }) => {
     resetLink: resetPasswordLink, 
   };
 };
+
+// Reset password function to add to your auth service
+
+// Reset password
+export const resetPassword = async (payload: { 
+  userId: string; 
+  token: string; 
+  newPassword: string; 
+  confirmPassword: string; 
+}) => {
+  const { userId, token, newPassword, confirmPassword } = payload;
+
+  // Validate confirm password
+  if (newPassword !== confirmPassword) {
+    throw new Error("New password and confirm password don't match");
+  }
+
+  // Verify reset token
+  let decodedToken;
+  try {
+    decodedToken = verifyToken(
+      token,
+      config.password.reset_password_token_secret as Secret
+    );
+  } catch (error) {
+    throw new Error('Invalid or expired reset token');
+  }
+
+  // Verify token belongs to the user
+  if (decodedToken.userId !== userId) {
+    throw new Error('Invalid reset token');
+  }
+
+  // Check if user exists and is active
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+      isActive: true,
+      isDeleted: false,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found or account is inactive');
+  }
+
+  // Hash new password
+  const hashedNewPassword = await hashPassword(newPassword);
+
+  // Update password
+  await prisma.user.update({
+    where: { id: userId },
+    data: { 
+      password: hashedNewPassword,
+      updatedAt: new Date()
+    }
+  });
+
+  return { 
+    success: true,
+    message: 'Password reset successfully' 
+  };
+};

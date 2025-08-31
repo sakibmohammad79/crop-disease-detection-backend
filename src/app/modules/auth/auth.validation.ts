@@ -155,9 +155,6 @@ const resetPasswordSchema = z.object({
     confirmPassword: z
       .string()
       .min(1, 'Confirm password is required'),
-  }).refine((data: any) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
   })
 });
 

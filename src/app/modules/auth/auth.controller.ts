@@ -228,3 +228,28 @@ export const forgotPasswordController = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { userId, token, newPassword, confirmPassword } = req.body;
+    
+    const result = await authService.resetPassword({
+      userId,
+      token,
+      newPassword,
+      confirmPassword
+    });
+    
+    sendResponse(res, {
+      statusCode: 200,
+      success: result.success,
+      message: result.message,
+    });
+  } catch (error: any) {
+    sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: error.message || 'Password reset failed',
+    });
+  }
+};
