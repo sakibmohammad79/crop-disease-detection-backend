@@ -7,6 +7,9 @@ import dotenv from 'dotenv';
 import compression from 'compression';
 import cookieParser from "cookie-parser";
 import router from './app/routes';
+import { globalErrorHandler } from './app/middlewares/globalErrorHandler';
+import { apiNotFoundHandler } from './app/middlewares/apiNotFoundHandler';
+
 
 
 
@@ -69,22 +72,9 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/v1', router);
 
 // 404 Handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`,
-  });
-});
+app.use(apiNotFoundHandler);
 
-// Global Error Handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err.stack);
-
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message:
-      process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message,
-  });
-});
+//global error handler
+app.use(globalErrorHandler);
 
 export default app;

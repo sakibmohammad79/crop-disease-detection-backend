@@ -6,6 +6,8 @@ import { config } from '../../config';
 import status from 'http-status';
 import { catchAsync } from '../../utils/catchAsync';
 
+
+
 // Register farmer
 export const registerFarmer = catchAsync(async (req: Request, res: Response) => {
   const userData = req.body;
