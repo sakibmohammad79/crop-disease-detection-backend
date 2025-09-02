@@ -79,10 +79,4 @@ router.post(
   authController.registerAdmin
 );
 
-router.get(
-  '/users',
-  roleGuard([Role.ADMIN]),
-  authController.getAllUsers
-);
-
 export const authRoutes = router;

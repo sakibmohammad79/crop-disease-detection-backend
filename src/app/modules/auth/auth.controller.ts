@@ -130,27 +130,6 @@ export const deactivateAccount = catchAsync(async (req: Request, res: Response) 
   });
 });
 
-// Get all users (admin only)
-export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const { page, limit, role, search } = req.query;
-  
-  const params = {
-    page: page ? parseInt(page as string) : 1,
-    limit: limit ? parseInt(limit as string) : 10,
-    role: role as string,
-    search: search as string,
-  };
-  
-  const result = await authService.getAllUsers(params);
-  
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Users retrieved successfully',
-    data: result.users,
-    meta: result.meta,
-  });
-});
 
 // Forgot password
 export const forgotPasswordController = catchAsync(async (req: Request, res: Response) => {

@@ -15,6 +15,29 @@ export const getMyProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get all users (admin only)
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const { page, limit, role, search } = req.query;
+  
+  const params = {
+    page: page ? parseInt(page as string) : 1,
+    limit: limit ? parseInt(limit as string) : 10,
+    role: role as string,
+    search: search as string,
+  };
+  
+  const result = await UserService.getAllUsers(params);
+  
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Users retrieved successfully',
+    data: result.users,
+    meta: result.meta,
+  });
+});
+
 export const UserController = {
     getMyProfile,
+    getAllUsers
 }
