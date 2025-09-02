@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { sendResponse } from '../../utils/response';
 import * as authService from './auth.service';
 import { config } from '../../config';
-import status from 'http-status';
 import { catchAsync } from '../../utils/catchAsync';
 
 
@@ -100,19 +99,6 @@ export const resetPassword = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 200,
     success: result.success,
-    message: result.message,
-  });
-});
-
-// Deactivate account
-export const deactivateAccount = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.userId!;
-  
-  const result = await authService.deactivateUser(userId);
-  
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
     message: result.message,
   });
 });

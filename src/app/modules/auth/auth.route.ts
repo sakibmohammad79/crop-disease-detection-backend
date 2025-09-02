@@ -55,11 +55,6 @@ router.post(
   authController.changePassword
 );
 
-router.post(
-  '/deactivate',
-  authController.deactivateAccount
-);
-
 /**
  * ============================
  * 👑 Admin-only routes

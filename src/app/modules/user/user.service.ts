@@ -1,4 +1,7 @@
+
+import { AppError } from "../../errors/AppError";
 import prisma from "../../utils/prisma";
+import status from "http-status";
 
 // Get user profile
 const getUserProfile = async (userId: string) => {
@@ -120,9 +123,96 @@ const updateUserProfile = async (
 };
 
 
+// Get user by ID (admin only)
+const getUserById = async (userId: string) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      isDeleted: false,
+      isActive: true
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      phone: true,
+      role: true,
+      photo: true,
+      address: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+      lastLoginAt: true,
+      farmerProfile: true,
+      adminProfile: true,
+    }
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return user;
+};
+
+// Toggle user status (admin only)
+export const toggleUserStatus = async (userId: string, status: boolean) => {
+  const existingUser = await prisma.user.findFirst({
+    where: { id: userId, isDeleted: false }
+  });
+
+  if (!existingUser) {
+    throw new AppError("user not found", 404)
+  }
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { isActive: status },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      isActive: true,
+      role: true,
+    }
+  });
+
+  return user;
+};
+
+// Delete user (soft delete - admin only)
+export const userSoftDelete = async (userId: string) => {
+  const existingUser = await prisma.user.findFirst({
+    where: { id: userId, isDeleted: false }
+  });
+
+  if (!existingUser) {
+    throw new AppError("User not found", 404);
+  }
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { 
+      isDeleted: true, 
+      isActive: false,
+      email: `deleted_${Date.now()}_${existingUser.email}` 
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+    }
+  });
+
+  return user;
+};
+
+
 
 export const UserService = {
     getUserProfile,
     getAllUsers,
-    updateUserProfile
+    updateUserProfile,
+    getUserById,
+    toggleUserStatus,
+    userSoftDelete,
 }

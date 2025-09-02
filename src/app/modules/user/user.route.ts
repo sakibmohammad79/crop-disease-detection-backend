@@ -4,7 +4,7 @@ import { UserController } from "./user.controller";
 import { roleGuard } from "../../middlewares/roleGuard";
 import { Role } from "@prisma/client";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { AuthValidationSchemas } from "../auth/auth.validation";
+import { UserValidationSchemas } from "./user.validation";
 
 const router = Router();
 /**
@@ -21,7 +21,7 @@ router.get(
 
 router.put(
   '/profile-update',
-  validateRequest(AuthValidationSchemas.updateProfileSchema),
+  validateRequest(UserValidationSchemas.updateProfileSchema),
   UserController.updateProfile
 );
 
@@ -35,6 +35,24 @@ router.get(
   '/users',
   roleGuard([Role.ADMIN]),
   UserController.getAllUsers
+);
+
+router.get(
+  '/:userId',
+  roleGuard([Role.ADMIN]),
+  UserController.getUserById
+);
+
+router.patch(
+  '/:userId/status',
+  roleGuard([Role.ADMIN]),
+  UserController.toggleUserStatus
+);
+
+router.delete(
+  '/:userId',
+  roleGuard([Role.ADMIN]),
+  UserController.userSoftteDelete
 );
 
 export const UserRoutes = router;

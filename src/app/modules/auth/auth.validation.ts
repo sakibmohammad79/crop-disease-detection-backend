@@ -158,22 +158,7 @@ const resetPasswordSchema = z.object({
   })
 });
 
-// Update profile schema
-const updateProfileSchema = z.object({
-  body: z.object({
-    name: z
-      .string()
-      .min(1, 'Name is required')
-      .max(100, 'Name must be less than 100 characters')
-      .optional(),
-    phone: z
-      .string()
-      .regex(/^(\+8801|8801|01)[3-9]\d{8}$/, 'Invalid Bangladesh phone number')
-      .optional(),
-    address: z.string().optional(),
-    photo: z.string().url('Invalid photo URL').optional(),
-  })
-});
+
 
 // Export types
 export type RegisterInput = z.infer<typeof registerSchema>['body'];
@@ -183,7 +168,7 @@ export type LoginInput = z.infer<typeof loginSchema>['body'];
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>['body'];
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>['body'];
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>['body'];
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>['body'];
+
 
 export const AuthValidationSchemas = {
   registerFarmerSchema,
@@ -192,5 +177,4 @@ export const AuthValidationSchemas = {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  updateProfileSchema
 }

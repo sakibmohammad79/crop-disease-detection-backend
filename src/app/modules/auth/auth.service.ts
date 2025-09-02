@@ -204,16 +204,6 @@ export const changeUserPassword = async (
   return { message: 'Password changed successfully' };
 };
 
-// Deactivate user account
-export const deactivateUser = async (userId: string ) => {
-  await prisma.user.update({
-    where: { id: userId },
-    data: { isActive: false }
-  });
-
-  return { message: 'Account deactivated successfully' };
-};
-
 
 // forgot password
 export const forgotPassword = async (payload: { email: string }) => {

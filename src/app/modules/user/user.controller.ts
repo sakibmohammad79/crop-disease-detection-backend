@@ -53,8 +53,51 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+// Get user by ID (admin only)
+const getUserById = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const user = await UserService.getUserById(userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User retrieved successfully',
+    data: user,
+  });
+});
+
+// Toggle user status (admin only)
+const toggleUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { status } = req.body;
+  const user = await UserService.toggleUserStatus(userId, status);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `User ${status ? 'activated' : 'deactivated'} successfully`,
+    data: user,
+  });
+});
+
+// Delete user (admin only)
+const userSoftteDelete = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  
+  const user = await UserService.userSoftDelete(userId);
+  
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User deleted successfully',
+    data: user,
+  });
+});
+
 export const UserController = {
     getMyProfile,
     getAllUsers,
-    updateProfile
+    updateProfile,
+    getUserById,
+    toggleUserStatus,
+    userSoftteDelete
 }
