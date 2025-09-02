@@ -70,20 +70,6 @@ export const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Get my profile
-export const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.userId!;
-  
-  const user = await authService.getUserProfile(userId);
-  
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Profile retrieved successfully',
-    data: user,
-  });
-});
-
 // Update profile
 export const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId!;

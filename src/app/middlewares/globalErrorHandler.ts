@@ -50,22 +50,6 @@ export const globalErrorHandler = (
     }
   }
     
-  // Handle MongoDB/Mongoose errors
-  else if (err.name === 'ValidationError') {
-    statusCode = 400;
-    message = 'Validation Error';
-    details.errors = Object.values(err.errors).map((e: any) => e.message);
-  }
-  else if (err.name === 'CastError') {
-    statusCode = 400;
-    message = `Invalid ${err.path}: ${err.value}`;
-  }
-  else if (err.code === 11000) {
-    statusCode = 409;
-    message = 'Duplicate field value entered';
-    details.field = Object.keys(err.keyValue)[0];
-  }
-    
   // Handle JWT errors
   else if (err.name === 'JsonWebTokenError') {
     statusCode = 401;

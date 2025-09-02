@@ -49,10 +49,6 @@ router.post(
  */
 router.use(authGuard); 
 
-router.get(
-  '/profile',
-  authController.getMyProfile
-);
 
 router.put(
   '/profile-update',
