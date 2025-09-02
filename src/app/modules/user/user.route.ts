@@ -3,6 +3,8 @@ import { authGuard } from "../../middlewares/authGuard";
 import { UserController } from "./user.controller";
 import { roleGuard } from "../../middlewares/roleGuard";
 import { Role } from "@prisma/client";
+import { validateRequest } from "../../middlewares/validateRequest";
+import { AuthValidationSchemas } from "../auth/auth.validation";
 
 const router = Router();
 /**
@@ -15,6 +17,12 @@ router.use(authGuard);
 router.get(
   '/profile',
   UserController.getMyProfile
+);
+
+router.put(
+  '/profile-update',
+  validateRequest(AuthValidationSchemas.updateProfileSchema),
+  UserController.updateProfile
 );
 
 /**

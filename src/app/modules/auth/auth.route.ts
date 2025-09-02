@@ -49,13 +49,6 @@ router.post(
  */
 router.use(authGuard); 
 
-
-router.put(
-  '/profile-update',
-  validateRequest(AuthValidationSchemas.updateProfileSchema),
-  authController.updateProfile
-);
-
 router.post(
   '/change-password',
   validateRequest(AuthValidationSchemas.changePasswordSchema),

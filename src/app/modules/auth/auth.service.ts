@@ -166,32 +166,6 @@ export const refreshToken = async(token: string) => {
   };
 }
 
-// Update user profile
-export const updateUserProfile = async (
-  userId: string, 
-  updateData: { name?: string; phone?: string; address?: string; photo?: string }
-) => {
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: updateData,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      phone: true,
-      role: true,
-      photo: true,
-      address: true,
-      createdAt: true,
-      updatedAt: true,
-      lastLoginAt: true,
-      farmerProfile: true,
-      adminProfile: true,
-    }
-  });
-
-  return user;
-};
 
 // Change password
 export const changeUserPassword = async (

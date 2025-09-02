@@ -70,20 +70,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Update profile
-export const updateProfile = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.userId!;
-  const { name, phone, address, photo } = req.body;
-  const updateData = { name, phone, address, photo };
-  const user = await authService.updateUserProfile(userId, updateData);
-  
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Profile updated successfully',
-    data: user,
-  });
-});
+
 
 // Change password
 export const changePassword = catchAsync(async (req: Request, res: Response) => {
