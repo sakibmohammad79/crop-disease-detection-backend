@@ -22,7 +22,7 @@ router.get(
 router.put(
   '/profile-update',
   validateRequest(UserValidationSchemas.updateProfileSchema),
-  UserController.updateProfile
+  UserController.updateUser
 );
 
 /**
@@ -44,13 +44,13 @@ router.get(
 );
 
 router.patch(
-  '/:userId/status',
+  '/status/:userId',
   roleGuard([Role.ADMIN]),
   UserController.toggleUserStatus
 );
 
 router.delete(
-  '/:userId',
+  '/soft-delete/:userId',
   roleGuard([Role.ADMIN]),
   UserController.userSoftteDelete
 );

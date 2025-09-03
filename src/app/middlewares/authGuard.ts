@@ -1,10 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-
 import { sendResponse } from '../utils/response';
 import prisma from '../utils/prisma';
 import status from 'http-status';
-import { STATUS_CODES } from 'http';
 import { config } from '../config';
 
 interface JwtPayload {

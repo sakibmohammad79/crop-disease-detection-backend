@@ -1,29 +1,29 @@
 import status from "http-status";
-import prisma from "../../utils/prisma";
-import { UpdateAdminProfileInput } from "./admin.validation";
 import { AppError } from "../../errors/AppError";
+import prisma from "../../utils/prisma";
+import { UpdateFarmerProfileInput } from "./farmer.validation";
 
-// Update admin profile  
-export const updateAdminProfile = async (
+// Update farmer profile
+const updateFarmerProfile = async (
   userId: string,
-  profileData: UpdateAdminProfileInput
+  profileData: UpdateFarmerProfileInput
 ) => {
-  // Check if user is admin
+  // Check if user is farmer
   const user = await prisma.user.findFirst({
     where: {
       id: userId,
-      role: 'ADMIN',
+      role: 'FARMER',
       isActive: true,
       isDeleted: false,
     }
   });
 
   if (!user) {
-    throw new AppError("Admin not found", status.NOT_FOUND);
+    throw new AppError("Farmer not found", status.NOT_FOUND);
   }
 
-  // Update admin profile
-  const updatedProfile = await prisma.adminProfile.update({
+  // Update farmer profile
+  const updatedProfile = await prisma.farmerProfile.update({
     where: { userId },
     data: profileData,
     include: {
@@ -46,6 +46,7 @@ export const updateAdminProfile = async (
   return updatedProfile;
 };
 
-export const AdminService = {
-    updateAdminProfile,
+
+export const FarmerService = {
+    updateFarmerProfile,
 }

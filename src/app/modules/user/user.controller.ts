@@ -39,11 +39,11 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 // Update profile
-const updateProfile = catchAsync(async (req: Request, res: Response) => {
+const updateUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId!;
   const { name, phone, address, photo } = req.body;
   const updateData = { name, phone, address, photo };
-  const user = await UserService.updateUserProfile(userId, updateData);
+  const user = await UserService.updateUser(userId, updateData);
   
   sendResponse(res, {
     statusCode: status.OK,
@@ -96,7 +96,7 @@ const userSoftteDelete = catchAsync(async (req: Request, res: Response) => {
 export const UserController = {
     getMyProfile,
     getAllUsers,
-    updateProfile,
+    updateUser,
     getUserById,
     toggleUserStatus,
     userSoftteDelete

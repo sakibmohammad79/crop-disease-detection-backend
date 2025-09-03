@@ -96,7 +96,7 @@ const getAllUsers = async (params: {
 };
 
 // Update user profile
-const updateUserProfile = async (
+const updateUser = async (
   userId: string, 
   updateData: { name?: string; phone?: string; address?: string; photo?: string }
 ) => {
@@ -211,7 +211,7 @@ export const userSoftDelete = async (userId: string) => {
 export const UserService = {
     getUserProfile,
     getAllUsers,
-    updateUserProfile,
+    updateUser,
     getUserById,
     toggleUserStatus,
     userSoftDelete,

@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
+import { FarmerValidationSchemas } from "./farmer.validation";
+import { FarmerController } from "./farmer.controller";
 import { authGuard } from "../../middlewares/authGuard";
 import { roleGuard } from "../../middlewares/roleGuard";
 import { Role } from "@prisma/client";
-import { AdminValidationSchemas } from "./admin.validation";
-import { AdminController } from "./admin.controller";
 
 const router = Router();
 
@@ -33,9 +33,9 @@ router.use(authGuard);
  */
 router.patch(
   '/',
-  roleGuard([Role.ADMIN]),
-  validateRequest(AdminValidationSchemas.updateAdminProfileSchema),
-  AdminController.updateAdminProfile
+  roleGuard([Role.FARMER]),
+  validateRequest(FarmerValidationSchemas.updateFarmerProfileSchema),
+  FarmerController.updateFarmerProfile
 );
 
-export const AdminRoutes = router;
+export const FarmerRoutes = router;
