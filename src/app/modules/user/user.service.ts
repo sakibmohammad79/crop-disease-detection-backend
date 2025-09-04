@@ -192,8 +192,7 @@ export const userSoftDelete = async (userId: string) => {
     where: { id: userId },
     data: { 
       isDeleted: true, 
-      isActive: false,
-      email: `deleted_${Date.now()}_${existingUser.email}` 
+      isActive: false, 
     },
     select: {
       id: true,
