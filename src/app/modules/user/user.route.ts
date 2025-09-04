@@ -19,8 +19,8 @@ router.get(
   UserController.getMyProfile
 );
 
-router.put(
-  '/profile-update',
+router.patch(
+  '/',
   validateRequest(UserValidationSchemas.updateProfileSchema),
   UserController.updateUser
 );

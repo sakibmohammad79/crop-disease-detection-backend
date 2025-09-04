@@ -13,7 +13,11 @@ const router = Router();
  * 🔓 Public routes (no auth required)
  * ============================
  */
-
+router.get(
+  '/farmer-stats',
+  // roleGuard([Role.FARMER]),
+  FarmerController.getFarmersStats
+);
 
 
 
@@ -25,12 +29,29 @@ const router = Router();
 router.use(authGuard); 
 
 
-
 /**
  * ============================
  * 👑 Farmer-only routes
  * ============================
  */
+router.get(
+  '/',
+  roleGuard([Role.ADMIN]),
+  FarmerController.getAllFarmers
+);
+
+router.get(
+  '/userId',
+  roleGuard([Role.FARMER]),
+  FarmerController.getFarmerById
+);
+
+router.get(
+  '/farmer-stats',
+  roleGuard([Role.FARMER, Role.ADMIN]),
+  FarmerController.getFarmersStats
+);
+
 router.patch(
   '/',
   roleGuard([Role.FARMER]),
