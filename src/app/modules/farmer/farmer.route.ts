@@ -35,6 +35,12 @@ router.use(authGuard);
  * ============================
  */
 router.get(
+  '/:cropType',
+  roleGuard([Role.ADMIN, Role.FARMER]),
+  FarmerController.getFarmersByCropType
+);
+
+router.get(
   '/',
   roleGuard([Role.ADMIN]),
   FarmerController.getAllFarmers

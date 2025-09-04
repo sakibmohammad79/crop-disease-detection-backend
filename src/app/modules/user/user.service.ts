@@ -122,7 +122,6 @@ const updateUser = async (
   return user;
 };
 
-
 // Get user by ID (admin only)
 const getUserById = async (userId: string) => {
   const user = await prisma.user.findFirst({
@@ -204,6 +203,7 @@ export const userSoftDelete = async (userId: string) => {
 
   return user;
 };
+
 
 
 

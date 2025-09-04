@@ -77,59 +77,28 @@ const getFarmersStats = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// // Toggle farmer status
-// const toggleFarmerStatus = catchAsync(async (req: Request, res: Response) => {
-//   const { userId } = req.params;
-//   const { isActive } = req.body;
-
-//   const result = await FarmerService.toggleFarmerStatus(userId, isActive);
-
-//   sendResponse(res, {
-//     statusCode: status.OK,
-//     success: true,
-//     message: `Farmer ${isActive ? 'activated' : 'deactivated'} successfully`,
-//     data: result,
-//   });
-// });
-
-// // Delete farmer (soft delete)
-// const deleteFarmer = catchAsync(async (req: Request, res: Response) => {
-//   const { userId } = req.params;
-
-//   const result = await FarmerService.deleteFarmer(userId);
-
-//   sendResponse(res, {
-//     statusCode: status.OK,
-//     success: true,
-//     message: "Farmer deleted successfully",
-//     data: result,
-//   });
-// });
-
 // // Get farmers by crop type
-// const getFarmersByCropType = catchAsync(async (req: Request, res: Response) => {
-//   const { cropType } = req.params;
-//   const { limit } = req.query;
+const getFarmersByCropType = catchAsync(async (req: Request, res: Response) => {
+  const { cropType } = req.params;
+  const { limit } = req.query;
 
-//   const result = await FarmerService.getFarmersByCropType(
-//     cropType,
-//     limit ? parseInt(limit as string) : undefined
-//   );
+  const result = await FarmerService.getFarmersByCropType(
+    cropType,
+    limit ? parseInt(limit as string) : undefined
+  );
 
-//   sendResponse(res, {
-//     statusCode: status.OK,
-//     success: true,
-//     message: `Farmers with crop type '${cropType}' retrieved successfully`,
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: `Farmers with crop type '${cropType}' retrieved successfully`,
+    data: result,
+  });
+});
 
 export const FarmerController = {
   updateFarmerProfile,
   getAllFarmers,
   getFarmerById,
   getFarmersStats,
-  // toggleFarmerStatus,
-  // deleteFarmer,
-  // getFarmersByCropType,
+  getFarmersByCropType,
 };

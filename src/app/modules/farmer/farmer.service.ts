@@ -302,5 +302,5 @@ export const FarmerService = {
     getAllFarmersFromDB,
     getFarmerByIdFromDB,
     getFarmersStats,
-    
+    getFarmersByCropType,
 }
