@@ -205,7 +205,53 @@ export const userSoftDelete = async (userId: string) => {
 };
 
 
+// Hard delete user with related profiles (admin only)
+const userHardDelete = async (userId: string) => {
+  // Check if user exists
+  const existingUser = await prisma.user.findFirst({
+    where: { id: userId },
+    include: {
+      farmerProfile: true,
+      adminProfile: true,
+    }
+  });
 
+  if (!existingUser) {
+    throw new AppError("User not found", status.NOT_FOUND);
+  }
+
+  // Use transaction to ensure all deletions succeed or fail together
+  const result = await prisma.$transaction(async (tx) => {
+    // Delete farmer profile if exists
+    if (existingUser.farmerProfile) {
+      await tx.farmerProfile.delete({
+        where: { userId: userId }
+      });
+    }
+
+    // Delete admin profile if exists
+    if (existingUser.adminProfile) {
+      await tx.adminProfile.delete({
+        where: { userId: userId }
+      });
+    }
+
+    // Delete the user
+    const deletedUser = await tx.user.delete({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      }
+    });
+
+    return deletedUser;
+  });
+
+  return result;
+};
 
 export const UserService = {
     getUserProfile,
@@ -214,4 +260,5 @@ export const UserService = {
     getUserById,
     toggleUserStatus,
     userSoftDelete,
+    userHardDelete
 }

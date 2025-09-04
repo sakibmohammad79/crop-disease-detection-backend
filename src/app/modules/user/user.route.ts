@@ -54,5 +54,10 @@ router.delete(
   roleGuard([Role.ADMIN]),
   UserController.userSoftteDelete
 );
+router.delete(
+  '/hard-delete/:userId',
+  roleGuard([Role.ADMIN]),
+  UserController.userhardDelete
+);
 
 export const UserRoutes = router;

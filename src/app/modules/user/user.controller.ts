@@ -92,6 +92,17 @@ const userSoftteDelete = catchAsync(async (req: Request, res: Response) => {
     data: user,
   });
 });
+// Delete user (admin only)
+const userhardDelete = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const user = await UserService.userHardDelete(userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User deleted successfully',
+    data: user,
+  });
+});
 
 export const UserController = {
     getMyProfile,
@@ -99,5 +110,6 @@ export const UserController = {
     updateUser,
     getUserById,
     toggleUserStatus,
-    userSoftteDelete
+    userSoftteDelete,
+    userhardDelete
 }
