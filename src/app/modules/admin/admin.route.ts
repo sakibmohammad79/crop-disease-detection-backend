@@ -49,6 +49,11 @@ router.get(
   roleGuard([Role.ADMIN]),
   AdminController.getAdminById
 );
+router.get(
+  '/department/:department',
+  roleGuard([Role.ADMIN]),
+  AdminController.getAdminsByDepartment
+);
 
 
 router.patch(

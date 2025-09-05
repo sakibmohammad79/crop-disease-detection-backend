@@ -50,6 +50,24 @@ const getAdminById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get admins by department
+const getAdminsByDepartment = catchAsync(async (req: Request, res: Response) => {
+  const { department } = req.params;
+  const { limit } = req.query;
+
+  const result = await AdminService.getAdminsByDepartmentFromDB(
+    department,
+    limit ? parseInt(limit as string) : undefined
+  );
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: `Admins in '${department}' department retrieved successfully`,
+    data: result,
+  });
+});
+
 // Get admins statistics
 const getAdminsStats = catchAsync(async (req: Request, res: Response) => {
   const result = await AdminService.getAdminsStatsFromDB();
@@ -79,4 +97,5 @@ export const AdminController = {
     updateAdminProfile,
     getAdminsStats,
     getAdminById,
+    getAdminsByDepartment
 }

@@ -199,7 +199,31 @@ const getAdminsStatsFromDB = async () => {
   };
 };
 
+// Get admins by department
+const getAdminsByDepartmentFromDB = async (department: string, limit: number = 50) => {
+  const admins = await prisma.user.findMany({
+    where: {
+      role: Role.ADMIN,
+      isActive: true,
+      isDeleted: false,
+      adminProfile: {
+        department: department
+      }
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      adminProfile: true,
+    },
+    take: limit,
+    orderBy: { createdAt: 'desc' }
+  });
 
+  return admins;
+};
 
 // Update admin profile  
 export const updateAdminProfile = async (
@@ -248,5 +272,6 @@ export const AdminService = {
     getAllAdminsFromDB,
     getAdminByIdFromDB,
     updateAdminProfile,
-    getAdminsStatsFromDB
+    getAdminsStatsFromDB,
+    getAdminsByDepartmentFromDB,
 }
