@@ -31,6 +31,11 @@ router.use(authGuard);
  * 👑 Farmer-only routes
  * ============================
  */
+router.get(
+  '/',
+  roleGuard([Role.ADMIN]),
+  AdminController.getAllAdmins
+);
 router.patch(
   '/',
   roleGuard([Role.ADMIN]),

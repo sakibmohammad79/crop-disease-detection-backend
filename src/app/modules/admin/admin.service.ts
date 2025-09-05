@@ -3,6 +3,102 @@ import prisma from "../../utils/prisma";
 import { UpdateAdminProfileInput } from "./admin.validation";
 import { AppError } from "../../errors/AppError";
 
+// Get all admins with pagination and filtering
+const getAllAdminsFromDB = async (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isActive?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) => {
+  const {
+    page = 1,
+    limit = 10,
+    search,
+    isActive,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = params;
+
+  const skip = (page - 1) * limit;
+
+  // Build where clause
+  const where: any = {
+    role: 'ADMIN',
+    isDeleted: false,
+  };
+
+  // Add active filter if provided
+  if (typeof isActive === 'boolean') {
+    where.isActive = isActive;
+  }
+
+  // Add search filter
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+      { phone: { contains: search, mode: 'insensitive' } },
+      { address: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  // Build orderBy
+  const orderBy: any = {};
+  if (sortBy === 'name' || sortBy === 'email' || sortBy === 'createdAt' || sortBy === 'lastLoginAt') {
+    orderBy[sortBy] = sortOrder;
+  } else if (sortBy === 'department' || sortBy === 'position') {
+    orderBy.adminProfile = { [sortBy]: sortOrder };
+  } else {
+    orderBy.createdAt = 'desc'; // default
+  }
+
+  // Execute queries
+  const [admins, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        photo: true,
+        address: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLoginAt: true,
+        adminProfile: {
+          select: {
+            id: true,
+            department: true,
+            designation: true,
+            createdAt: true,
+            updatedAt: true,
+          }
+        },
+      },
+      orderBy,
+    }),
+    prisma.user.count({ where })
+  ]);
+  const totalPages = Math.ceil(total / limit);
+  return {
+    admins,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    }
+  };
+};
+
 // Update admin profile  
 export const updateAdminProfile = async (
   userId: string,
@@ -47,5 +143,6 @@ export const updateAdminProfile = async (
 };
 
 export const AdminService = {
+    getAllAdminsFromDB,
     updateAdminProfile,
 }
