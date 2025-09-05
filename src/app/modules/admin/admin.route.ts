@@ -36,6 +36,13 @@ router.get(
   roleGuard([Role.ADMIN]),
   AdminController.getAllAdmins
 );
+
+router.get(
+  '/:userId',
+  roleGuard([Role.ADMIN]),
+  AdminController.getAdminById
+);
+
 router.patch(
   '/',
   roleGuard([Role.ADMIN]),

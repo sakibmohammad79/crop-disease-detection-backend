@@ -2,6 +2,7 @@ import status from "http-status";
 import prisma from "../../utils/prisma";
 import { UpdateAdminProfileInput } from "./admin.validation";
 import { AppError } from "../../errors/AppError";
+import { Role } from "@prisma/client";
 
 // Get all admins with pagination and filtering
 const getAllAdminsFromDB = async (params: {
@@ -99,6 +100,44 @@ const getAllAdminsFromDB = async (params: {
   };
 };
 
+// Get admin by ID
+const getAdminByIdFromDB = async (userId: string) => {
+  const admin = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      role: Role.ADMIN,
+      isDeleted: false,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      phone: true,
+      photo: true,
+      address: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+      lastLoginAt: true,
+      adminProfile: {
+        select: {
+          id: true,
+          department: true,
+          designation: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      },
+    },
+  });
+
+  if (!admin) {
+    throw new AppError("Admin not found", status.NOT_FOUND);
+  }
+
+  return admin;
+};
+
 // Update admin profile  
 export const updateAdminProfile = async (
   userId: string,
@@ -144,5 +183,6 @@ export const updateAdminProfile = async (
 
 export const AdminService = {
     getAllAdminsFromDB,
+    getAdminByIdFromDB,
     updateAdminProfile,
 }

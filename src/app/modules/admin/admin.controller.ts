@@ -36,6 +36,32 @@ const getAllAdmins = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get admin by ID
+const getAdminById = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  const result = await AdminService.getAdminByIdFromDB(userId);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Admin retrieved successfully",
+    data: result,
+  });
+});
+
+// Get admins statistics
+// const getAdminsStats = catchAsync(async (req: Request, res: Response) => {
+//   const result = await AdminService.getAdminsStats();
+
+//   sendResponse(res, {
+//     statusCode: status.OK,
+//     success: true,
+//     message: "Admins statistics retrieved successfully",
+//     data: result,
+//   });
+// });
+
 const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId!;
   const profileData: UpdateAdminProfileInput = req.body;
@@ -51,4 +77,5 @@ const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
 export const AdminController = {
     getAllAdmins,
     updateAdminProfile,
+    getAdminById,
 }
