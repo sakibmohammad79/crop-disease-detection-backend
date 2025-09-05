@@ -138,6 +138,69 @@ const getAdminByIdFromDB = async (userId: string) => {
   return admin;
 };
 
+// Get admins statistics (for dashboard)
+const getAdminsStatsFromDB = async () => {
+  const [
+    totalAdmins,
+    activeAdmins,
+    inactiveAdmins,
+    recentAdmins,
+    departmentStats
+  ] = await Promise.all([
+    // Total admins
+    prisma.user.count({
+      where: { role: Role.ADMIN, isDeleted: false }
+    }),
+    
+    // Active admins
+    prisma.user.count({
+      where: { role: Role.ADMIN, isActive: true, isDeleted: false }
+    }),
+    
+    // Inactive admins
+    prisma.user.count({
+      where: { role: Role.ADMIN, isActive: false, isDeleted: false }
+    }),
+    
+    // Recent admins (last 30 days)
+    prisma.user.count({
+      where: {
+        role: Role.ADMIN,
+        isDeleted: false,
+        createdAt: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        }
+      }
+    }),
+    
+    // Department statistics
+    prisma.adminProfile.groupBy({
+      by: ['department'],
+      _count: { department: true },
+      where: {
+        user: { isDeleted: false, isActive: true }
+      }
+    })
+  ]);
+
+  // Format department stats
+  const departmentCounts = departmentStats.map(dept => ({
+    department: dept.department,
+    count: dept._count.department
+  }));
+
+  return {
+    totalAdmins,
+    activeAdmins,
+    inactiveAdmins,
+    recentAdmins,
+    departmentStats: departmentCounts,
+    activeAdminsPercentage: totalAdmins > 0 ? Math.round((activeAdmins / totalAdmins) * 100) : 0,
+  };
+};
+
+
+
 // Update admin profile  
 export const updateAdminProfile = async (
   userId: string,
@@ -185,4 +248,5 @@ export const AdminService = {
     getAllAdminsFromDB,
     getAdminByIdFromDB,
     updateAdminProfile,
+    getAdminsStatsFromDB
 }

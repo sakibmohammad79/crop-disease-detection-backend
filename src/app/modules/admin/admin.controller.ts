@@ -51,16 +51,16 @@ const getAdminById = catchAsync(async (req: Request, res: Response) => {
 });
 
 // Get admins statistics
-// const getAdminsStats = catchAsync(async (req: Request, res: Response) => {
-//   const result = await AdminService.getAdminsStats();
+const getAdminsStats = catchAsync(async (req: Request, res: Response) => {
+  const result = await AdminService.getAdminsStatsFromDB();
 
-//   sendResponse(res, {
-//     statusCode: status.OK,
-//     success: true,
-//     message: "Admins statistics retrieved successfully",
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Admins statistics retrieved successfully",
+    data: result,
+  });
+});
 
 const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId!;
@@ -77,5 +77,6 @@ const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
 export const AdminController = {
     getAllAdmins,
     updateAdminProfile,
+    getAdminsStats,
     getAdminById,
 }
