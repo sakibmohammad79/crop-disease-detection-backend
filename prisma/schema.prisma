@@ -30,8 +30,10 @@ model User {
   // Relations - role specific profiles
   farmerProfile FarmerProfile?
   adminProfile  AdminProfile?
-
+  image Image[]
+  diseaseHistory DiseaseHistory[]
   @@map("users")
+  
 }
 
 model FarmerProfile {
@@ -66,79 +68,124 @@ model AdminProfile {
   @@map("admin_profiles")
 }
 
+
+
+
+model Image {
+  id             String      @id @default(ulid())
+  filename       String      @unique
+  originalName   String
+  mimetype       String
+  size           Int
+  path           String
+  
+  // Processed image paths
+  processedPath  String?     // ML-ready processed image
+  thumbnailPath  String?     // Thumbnail for UI
+  
+  uploadedAt     DateTime    @default(now())
+
+  // Image metadata
+  width          Int?
+  height         Int?
+  gpsLatitude    Float?
+  gpsLongitude   Float?
+  capturedAt     DateTime?
+
+  // Processing status
+  processingStatus ProcessingStatus @default(PENDING)
+  processingError String?
+
+  // Relations
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  predictions    Prediction[]
+
+  @@map("images")
+}
+
+model Disease {
+  id             String      @id @default(ulid())
+  name           String      @unique
+  scientificName String?
+  description    String?
+  symptoms       String[]
+  causes         String[]
+  treatment      String?
+  prevention     String?
+  severity       Severity    @default(MEDIUM)
+  crops          String[]    // Which crops this disease affects
+  
+  // Additional fields for better disease management
+  isActive       Boolean     @default(true)
+  imageUrl       String?     // Reference disease image
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  predictions    Prediction[]
+  diseaseHistory DiseaseHistory[]
+  @@map("diseases")
+  
+}
+
+model Prediction {
+  id          String   @id @default(ulid())
+  confidence  Float
+  isHealthy   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Additional prediction data
+  boundingBox  Json?    // For object detection {x, y, width, height}
+  affectedArea Float?   // Percentage of affected area
+  
+  // Processing metadata
+  modelVersion String?  // Track which ML model version was used
+  processingTime Float? // Processing time in seconds
+
+  // Relations
+  imageId     String
+  image       Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  diseaseId   String?
+  disease     Disease? @relation(fields: [diseaseId], references: [id])
+
+  @@map("predictions")
+}
+
+// Additional model for tracking disease history and trends
+model DiseaseHistory {
+  id            String   @id @default(ulid())
+  userId        String
+  diseaseId     String
+  detectedAt    DateTime @default(now())
+  location      String?
+  cropType      String?
+  severity      Severity
+  weatherData   Json?    // Weather conditions when detected
+  
+  // Relations
+  user          User     @relation(fields: [userId], references: [id])
+  disease       Disease  @relation(fields: [diseaseId], references: [id])
+  
+  @@map("disease_history")
+}
+
 enum Role {
   ADMIN
   FARMER
-  // RESEARCHER
 }
 
-// Commented out models for future use
-// model Image {
-//   id             Int      @id @default(autoincrement())
-//   filename       String
-//   originalName   String
-//   mimetype       String
-//   size           Int
-//   path           String
-//   uploadedAt     DateTime @default(now())
-  
-//   // Image metadata
-//   width          Int?
-//   height         Int?
-//   gpsLatitude    Float?
-//   gpsLongitude   Float?
-//   capturedAt     DateTime?
-  
-//   // Relations
-//   userId         String
-//   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-//   predictions    Prediction[]
-  
-//   @@map("images")
-// }
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
 
-// model Disease {
-//   id          Int      @id @default(autoincrement())
-//   name        String   @unique
-//   scientificName String?
-//   description String?
-//   symptoms    String[]
-//   causes      String[]
-//   treatment   String?
-//   prevention  String?
-//   severity    Severity @default(MEDIUM)
-//   crops       String[] // Which crops this disease affects
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-  
-//   // Relations
-//   predictions Prediction[]
-  
-//   @@map("diseases")
-// }
-
-// model Prediction {
-//   id          Int      @id @default(autoincrement())
-//   confidence  Float
-//   isHealthy   Boolean  @default(false)
-//   createdAt   DateTime @default(now())
-  
-//   // Additional prediction data
-//   boundingBox Json?    // For object detection
-//   affectedArea Float?  // Percentage of affected area
-  
-//   // Relations
-//   imageId     Int
-//   image       Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
-//   diseaseId   Int?
-//   disease     Disease? @relation(fields: [diseaseId], references: [id])
-  
-//   @@map("predictions")
-// }
-
-// enum Severity {
-//   LOW
-//   MEDIUM
-//   HIGH
-//   CRITICAL
-// }
+enum ProcessingStatus {
+  PENDING     // Just uploaded
+  PROCESSING  // Being analyzed by ML model
+  COMPLETED   // Analysis completed successfully
+  FAILED      // Analysis failed
+}
