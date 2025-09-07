@@ -161,7 +161,7 @@ export const toggleUserStatus = async (userId: string, status: boolean) => {
   });
 
   if (!existingUser) {
-    throw new AppError("user not found", 404)
+    throw new AppError( 404, "user not found",)
   }
   const user = await prisma.user.update({
     where: { id: userId },
@@ -185,7 +185,7 @@ export const userSoftDelete = async (userId: string) => {
   });
 
   if (!existingUser) {
-    throw new AppError("User not found", 404);
+    throw new AppError(status.NOT_FOUND, "User not found",);
   }
   const user = await prisma.user.update({
     where: { id: userId },
@@ -217,7 +217,7 @@ const userHardDelete = async (userId: string) => {
   });
 
   if (!existingUser) {
-    throw new AppError("User not found", status.NOT_FOUND);
+    throw new AppError( status.NOT_FOUND, "User not found",);
   }
 
   // Use transaction to ensure all deletions succeed or fail together

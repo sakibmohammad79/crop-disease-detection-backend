@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { UpdateAdminProfileInput } from "./admin.validation";
 import { sendResponse } from "../../utils/response";
-import { AdminService } from "./admin.service";
+
 import status from "http-status";
+import { AdminService } from "./admin.service";
 
 // Get all admins with pagination and filtering
 const getAllAdmins = catchAsync(async (req: Request, res: Response) => {

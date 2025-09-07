@@ -1,7 +1,10 @@
-import app from "./app";
-import { config } from "./app/config";
+
 import cluster from 'cluster';
 import os from 'os';
+import app from './app';
+import { config } from './app/config';
+
+
 
 const numCPUs = os.cpus().length; // Get the number of CPU cores
 

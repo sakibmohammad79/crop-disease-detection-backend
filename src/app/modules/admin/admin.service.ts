@@ -132,7 +132,7 @@ const getAdminByIdFromDB = async (userId: string) => {
   });
 
   if (!admin) {
-    throw new AppError("Admin not found", status.NOT_FOUND);
+    throw new AppError( status.NOT_FOUND, "Admin not found");
   }
 
   return admin;
@@ -241,7 +241,7 @@ export const updateAdminProfile = async (
   });
 
   if (!user) {
-    throw new AppError("Admin not found", status.NOT_FOUND);
+    throw new AppError( status.NOT_FOUND, "Admin not found",);
   }
 
   // Update admin profile

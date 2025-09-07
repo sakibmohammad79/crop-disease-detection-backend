@@ -19,7 +19,7 @@ const updateFarmerProfile = async (
   });
 
   if (!user) {
-    throw new AppError("Farmer not found", status.NOT_FOUND);
+    throw new AppError( status.NOT_FOUND, "Farmer not found");
   }
 
   // Update farmer profile
@@ -195,7 +195,7 @@ const getFarmerByIdFromDB = async (userId: string) => {
   });
 
   if (!farmer) {
-    throw new AppError("Farmer not found", status.NOT_FOUND);
+    throw new AppError( status.NOT_FOUND, "Farmer not found",);
   }
 
   return farmer;

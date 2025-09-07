@@ -7,9 +7,8 @@ import dotenv from 'dotenv';
 import compression from 'compression';
 import cookieParser from "cookie-parser";
 import router from './app/routes';
-import { globalErrorHandler } from './app/middlewares/globalErrorHandler';
 import { apiNotFoundHandler } from './app/middlewares/apiNotFoundHandler';
-
+import { globalErrorHandler } from './app/middlewares/globalErrorHandler';
 
 
 
