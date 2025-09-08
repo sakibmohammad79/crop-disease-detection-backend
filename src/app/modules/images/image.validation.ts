@@ -56,23 +56,7 @@ const bulkDeleteValidation = z.object({
   }),
 });
 
-const downloadImageValidation = z.object({
-  params: z.object({
-    id: z.string({
-      error: 'Image ID is required',
-    }).min(1, 'Image ID cannot be empty'),
-    type: z.enum(['original', 'processed', 'thumbnail']).optional(),
-  }),
-});
 
-const serveImageValidation = z.object({
-  params: z.object({
-    id: z.string({
-      error: 'Image ID is required',
-    }).min(1, 'Image ID cannot be empty'),
-    type: z.enum(['original', 'processed', 'thumbnail']).optional(),
-  }),
-});
 
 const reprocessImageValidation = z.object({
   params: z.object({
@@ -131,8 +115,7 @@ export const ImageValidation = {
   getImageByIdValidation,
   deleteImageValidation,
   bulkDeleteValidation,
-  downloadImageValidation,
-  serveImageValidation,
+
   reprocessImageValidation,
   getStatsValidation,
   validateImageFile,

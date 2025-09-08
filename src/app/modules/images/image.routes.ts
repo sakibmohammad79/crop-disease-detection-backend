@@ -53,21 +53,8 @@ router.get(
   ImageController.getImageById
 );
 
-// Serve image file (original, processed, thumbnail) via query param
-router.get(
-  '/:id/serve',
-  roleGuard([Role.ADMIN, Role.FARMER]),
-  validateRequest(ImageValidation.serveImageValidation),
-  ImageController.serveImage
-);
 
-// Download image file via query param
-router.get(
-  '/:id/download',
-  roleGuard([Role.ADMIN, Role.FARMER]),
-  validateRequest(ImageValidation.downloadImageValidation),
-  ImageController.downloadImage
-);
+
 
 // Reprocess image (for ML pipeline)
 router.post(
