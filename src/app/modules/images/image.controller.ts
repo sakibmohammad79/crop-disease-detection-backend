@@ -1,10 +1,10 @@
+
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import path from 'path';
 import { catchAsync } from '../../utils/catchAsync';
-import { AppError } from '../../errors/AppError';
-import { ImageService } from './image.service';
 import { sendResponse } from '../../utils/response';
+import { ImageService } from './image.service';
+import { AppError } from '../../errors/AppError';
 
 const uploadImage = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
@@ -123,47 +123,66 @@ const getImageStats = catchAsync(async (req: Request, res: Response) => {
 
 const reprocessImage = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await ImageService.reprocessImage(id);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Image reprocessed successfully',
-    data: result,
-  });
+  
+  try {
+    const result = await ImageService.reprocessImage(id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Image reprocessed successfully',
+      data: result,
+    });
+  } catch (error) {
+    if (error instanceof AppError && error.statusCode === httpStatus.NOT_IMPLEMENTED) {
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: false,
+        message: 'Reprocessing feature is not available for Cloudinary images currently',
+        data: null,
+      });
+    } else {
+      throw error;
+    }
+  }
 });
 
+// For Cloudinary URLs, these will redirect to direct URLs
 const downloadImage = catchAsync(async (req: Request, res: Response) => {
   const { id, type = 'original' } = req.params;
   
   const image = await ImageService.getImageById(id);
   
-  let filePath: string;
+  let downloadUrl: string;
   let fileName: string;
   
   switch (type) {
     case 'processed':
-      filePath = image.processedPath || '';
+      downloadUrl = image.processedPath!;
       fileName = `processed_${image.originalName}`;
       break;
     case 'thumbnail':
-      filePath = image.thumbnailPath || '';
+      downloadUrl = image.thumbnailPath!;
       fileName = `thumb_${image.originalName}`;
       break;
     case 'original':
     default:
-      filePath = image.path;
+      downloadUrl = image.path;
       fileName = image.originalName;
       break;
   }
 
-  if (!filePath) {
+  if (!downloadUrl) {
     throw new AppError(httpStatus.NOT_FOUND, `${type} version not available`);
   }
 
-  res.setHeader('Content-Type', image.mimetype);
-  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-  res.sendFile(path.resolve(filePath));
+  // For Cloudinary URLs, add download flag and redirect
+  if (downloadUrl.includes('cloudinary.com')) {
+    const downloadWithFlag = downloadUrl.replace('/upload/', `/upload/fl_attachment:${fileName}/`);
+    return res.redirect(downloadWithFlag);
+  }
+
+  // Fallback for local files
+  res.redirect(downloadUrl);
 });
 
 const serveImage = catchAsync(async (req: Request, res: Response) => {
@@ -171,28 +190,33 @@ const serveImage = catchAsync(async (req: Request, res: Response) => {
   
   const image = await ImageService.getImageById(id);
   
-  let filePath: string;
+  let imageUrl: string;
   
   switch (type) {
     case 'processed':
-      filePath = image.processedPath || '';
+      imageUrl = image.processedPath!;
       break;
     case 'thumbnail':
-      filePath = image.thumbnailPath || '';
+      imageUrl = image.thumbnailPath!;
       break;
     case 'original':
     default:
-      filePath = image.path;
+      imageUrl = image.path;
       break;
   }
 
-  if (!filePath) {
+  if (!imageUrl) {
     throw new AppError(httpStatus.NOT_FOUND, `${type} version not available`);
   }
 
-  res.setHeader('Content-Type', image.mimetype);
-  res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-  res.sendFile(path.resolve(filePath));
+  // For Cloudinary URLs, redirect directly
+  if (imageUrl.includes('cloudinary.com')) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    return res.redirect(imageUrl);
+  }
+
+  // Fallback for local files
+  res.redirect(imageUrl);
 });
 
 export const ImageController = {

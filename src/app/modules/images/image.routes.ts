@@ -1,17 +1,19 @@
+
 import express from 'express';
-import { roleGuard } from '../../middlewares/roleGuard';
-import { validateRequest } from '../../middlewares/validateRequest';
+import { ImageController } from './image.controller';
 import { ImageValidation } from './image.validation';
+import { upload } from '../../middlewares/upload';
+import { validateRequest } from '../../middlewares/validateRequest';
+import { roleGuard } from '../../middlewares/roleGuard';
 import { Role } from '@prisma/client';
 import { authGuard } from '../../middlewares/authGuard';
-import { upload } from '../../middlewares/upload';
-import { ImageController } from './image.controller';
 
 const router = express.Router();
 
+//protected route
 router.use(authGuard);
 
-// Upload image - requires authentication
+// Upload image - requires authentication  
 router.post(
   '/upload',
   roleGuard([Role.ADMIN, Role.FARMER]),
@@ -21,7 +23,7 @@ router.post(
   ImageController.uploadImage
 );
 
-// Get all images - admin only or with filters
+// Get all images - admin only
 router.get(
   '/',
   roleGuard([Role.ADMIN]),
@@ -53,13 +55,50 @@ router.get(
   ImageController.getImageById
 );
 
+// Serve image file (original, processed, thumbnail) - redirects to Cloudinary URLs
+router.get(
+  '/:id/serve/:type',
+  roleGuard([Role.ADMIN, Role.FARMER]),
+  validateRequest(ImageValidation.serveImageValidation),
+  ImageController.serveImage
+);
 
+// Serve image file - default to original
+router.get(
+  '/:id/serve',
+  roleGuard([Role.ADMIN, Role.FARMER]),
+  (req: any, res: any, next: any) => {
+    req.params.type = 'original';
+    next();
+  },
+  validateRequest(ImageValidation.serveImageValidation),
+  ImageController.serveImage
+);
 
+// Download image file - force download with proper filename
+router.get(
+  '/:id/download/:type',
+ roleGuard([Role.ADMIN, Role.FARMER]),
+  validateRequest(ImageValidation.downloadImageValidation),
+  ImageController.downloadImage
+);
 
-// Reprocess image (for ML pipeline)
+// Download image file - default to original
+router.get(
+  '/:id/download',
+  roleGuard([Role.ADMIN, Role.FARMER]),
+  (req: any, res: any, next: any) => {
+    req.params.type = 'original';
+    next();
+  },
+  validateRequest(ImageValidation.downloadImageValidation),
+  ImageController.downloadImage
+);
+
+// Reprocess image (admin only) - limited functionality with Cloudinary
 router.post(
   '/:id/reprocess',
-  roleGuard([Role.ADMIN, Role.FARMER]),
+  roleGuard([Role.ADMIN]),
   validateRequest(ImageValidation.reprocessImageValidation),
   ImageController.reprocessImage
 );

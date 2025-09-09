@@ -33,10 +33,6 @@ export const config = {
     refresh_token_secret: getEnv("REFRESH_TOKEN_SECRET"),
     refresh_token_secret_expires_in: getEnv("REFRESH_TOKEN_SECRET_EXPIRES_IN"),
   },
-  api: {
-    key: getEnv("API_KEY"),
-    secret: getEnv("API_SECRET"),
-  },
   password: {
     reset_password_link: getEnv("RESET_PASSWORD_LINK"),
     reset_password_token_secret: getEnv("RESET_PASSWORD_TOKEN_SECRET"),

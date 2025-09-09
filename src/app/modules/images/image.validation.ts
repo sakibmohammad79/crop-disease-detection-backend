@@ -1,7 +1,8 @@
+// src/app/modules/image/image.validation.ts
 import { z } from 'zod';
 
 const uploadImageValidation = z.object({
-  body: z.object({}), // File validation is handled by multer
+  body: z.object({}), // File validation is handled by multer and custom middleware
 });
 
 const getImagesValidation = z.object({
@@ -56,7 +57,23 @@ const bulkDeleteValidation = z.object({
   }),
 });
 
+const downloadImageValidation = z.object({
+  params: z.object({
+    id: z.string({
+      error: 'Image ID is required',
+    }).min(1, 'Image ID cannot be empty'),
+    type: z.enum(['original', 'processed', 'thumbnail']).default('original'),
+  }),
+});
 
+const serveImageValidation = z.object({
+  params: z.object({
+    id: z.string({
+      error: 'Image ID is required',
+    }).min(1, 'Image ID cannot be empty'),
+    type: z.enum(['original', 'processed', 'thumbnail']).default('original'),
+  }),
+});
 
 const reprocessImageValidation = z.object({
   params: z.object({
@@ -72,7 +89,7 @@ const getStatsValidation = z.object({
   }),
 });
 
-// File validation middleware (to be used with multer)
+// Enhanced file validation middleware for Cloudinary
 const validateImageFile = (req: any, res: any, next: any) => {
   if (!req.file) {
     return res.status(400).json({
@@ -89,7 +106,7 @@ const validateImageFile = (req: any, res: any, next: any) => {
     });
   }
 
-  // Check file size (10MB max)
+  // Check file size (10MB max - Cloudinary free tier friendly)
   if (req.file.size > 10 * 1024 * 1024) {
     return res.status(400).json({
       success: false,
@@ -97,14 +114,43 @@ const validateImageFile = (req: any, res: any, next: any) => {
     });
   }
 
-  // Check image dimensions (optional - can be done with sharp)
-  const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  // Check supported image formats
+  const allowedFormats = [
+    'image/jpeg', 
+    'image/jpg', 
+    'image/png', 
+    'image/webp',
+    'image/gif',
+    'image/bmp',
+    'image/tiff'
+  ];
+  
   if (!allowedFormats.includes(req.file.mimetype)) {
     return res.status(400).json({
       success: false,
-      message: 'Only JPEG, PNG, and WebP formats are allowed',
+      message: 'Supported formats: JPEG, PNG, WebP, GIF, BMP, TIFF',
     });
   }
+
+  // Additional validation for crop disease images
+  const filename = req.file.originalname.toLowerCase();
+  const suspiciousPatterns = [
+    'test', 'sample', 'demo', 'placeholder'
+  ];
+  
+  // Check for suspicious test files
+  const isSuspicious = suspiciousPatterns.some(pattern => 
+    filename.includes(pattern)
+  );
+  
+  if (isSuspicious) {
+    console.warn(`Potentially test file uploaded: ${filename}`);
+    // Don't block, just log for monitoring
+  }
+
+  // Check minimum resolution (for ML processing)
+  // Note: This would require additional library like 'image-size'
+  // For now, we'll rely on Sharp processing in the service
 
   next();
 };
@@ -115,7 +161,8 @@ export const ImageValidation = {
   getImageByIdValidation,
   deleteImageValidation,
   bulkDeleteValidation,
-
+  downloadImageValidation,
+  serveImageValidation,
   reprocessImageValidation,
   getStatsValidation,
   validateImageFile,
