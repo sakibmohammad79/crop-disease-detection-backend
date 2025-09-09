@@ -50,4 +50,9 @@ export const config = {
     email_from: getEnv("EMAIL_FROM"),
     email_from_name : getEnv("EMAIL_FROM_NAME")
   },
+  cloudinary: {
+    cloudinary_cloud_name : getEnv("CLOUDINARY_CLOUD_NAME"),
+    cloudinary_api_kay : getEnv("CLOUDINARY_API_KEY"),
+    CLOUDINARY_API_SECRET: getEnv("CLOUDINARY_API_SECRET"),
+  }
 };
