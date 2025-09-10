@@ -1,50 +1,21 @@
 import sharp from 'sharp';
 import fs from 'fs/promises';
-import crypto from 'crypto';
 import httpStatus from 'http-status';
 import { v2 as cloudinary } from 'cloudinary';
 import { AppError } from '../../errors/AppError';
 import { PrismaClient, ProcessingStatus } from '../../../generated/prisma';
-import { config } from '../../config';
+import { uploadBufferToCloudinary } from '../../helpers/uploadToCloudinary';
 
 const prisma = new PrismaClient();
-
-//Configure Cloudinary
-cloudinary.config({
-  cloud_name: config.cloudinary.cloudinary_cloud_name,
-  api_key: config.cloudinary.cloudinary_api_kay,
-  api_secret: config.cloudinary.CLOUDINARY_API_SECRET,
-});
-
-// Helper: Upload buffer directly to Cloudinary
-const uploadBufferToCloudinary = (buffer: Buffer, folder: string) => {
-  return new Promise<any>((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: `crop-disease/${folder}`,
-        resource_type: 'image',
-        quality: 'auto', 
-        
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    stream.end(buffer);
-  });
-};
 
 
 const uploadImage = async (file: Express.Multer.File, userId: string) => {
   if (!file) {
     throw new AppError(httpStatus.BAD_REQUEST, 'No file uploaded');
   }
-
   try {
     // Get image metadata
     const metadata = await sharp(file.path).metadata();
-
     // Create processed image (512x512)
     const processedBuffer = await sharp(file.path)
       .resize(512, 512, {
@@ -53,20 +24,17 @@ const uploadImage = async (file: Express.Multer.File, userId: string) => {
       })
       .jpeg({ quality: 90 })
       .toBuffer();
-
     // Create thumbnail (150x150)
     const thumbnailBuffer = await sharp(file.path)
       .resize(150, 150, { fit: 'cover' })
       .jpeg({ quality: 80 })
       .toBuffer();
-
     // Upload to Cloudinary (direct from buffer)
     const [originalUpload, processedUpload, thumbnailUpload] = await Promise.all([
-      cloudinary.uploader.upload(file.path, { folder: 'crop-disease/original' }), // original still from disk
+      cloudinary.uploader.upload(file.path, { folder: 'crop-disease/original' }), 
       uploadBufferToCloudinary(processedBuffer, 'processed'),
       uploadBufferToCloudinary(thumbnailBuffer, 'thumbnails'),
     ]);
-
     // Save to database
     const savedImage = await prisma.image.create({
       data: {
@@ -88,23 +56,19 @@ const uploadImage = async (file: Express.Multer.File, userId: string) => {
         },
       },
     });
-
     // Clean up uploaded local file safely
-   // Clean up uploaded local file safely
-try {
-  setTimeout(async () => {
     try {
-      await fs.rm(file.path, { force: true });
-      console.log(`Temp file deleted: ${file.path}`);
+      setTimeout(async () => {
+        try {
+          await fs.rm(file.path, { force: true });
+          console.log(`Temp file deleted: ${file.path}`);
+        } catch (err) {
+          console.error('Error deleting temp file after delay:', err);
+        }
+      }, 1000); // 1s delay so Sharp/Cloudinary releases the lock
     } catch (err) {
-      console.error('Error deleting temp file after delay:', err);
+      console.error('Error scheduling temp file deletion:', err);
     }
-  }, 1000); // 1s delay so Sharp/Cloudinary releases the lock
-} catch (err) {
-  console.error('Error scheduling temp file deletion:', err);
-}
-
-
     return {
       ...savedImage,
       urls: {
