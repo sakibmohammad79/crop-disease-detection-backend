@@ -4,6 +4,7 @@ import { UserRoutes } from "../modules/user/user.route";
 import { AdminRoutes } from "../modules/admin/admin.route";
 import { FarmerRoutes } from "../modules/farmer/farmer.route";
 import { ImageRoutes } from "../modules/images/image.routes";
+import { MLRoutes } from "../modules/ml/ml.routes";
 // import { ImageRoutes } from "../modules/images/image.routes";
 
 
@@ -29,6 +30,10 @@ const moduleRoutes = [
   {
     path: "/image",
     route: ImageRoutes,
+  },
+  {
+    path: "/ml",
+    route: MLRoutes,
   },
 ];
 
