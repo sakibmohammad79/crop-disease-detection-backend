@@ -50,5 +50,9 @@ export const config = {
     cloudinary_cloud_name : getEnv("CLOUDINARY_CLOUD_NAME"),
     cloudinary_api_kay : getEnv("CLOUDINARY_API_KEY"),
     CLOUDINARY_API_SECRET: getEnv("CLOUDINARY_API_SECRET"),
+  },
+  ml: {
+    ml_service_url: getEnv("ML_SERVICE_URL"),
+    ml_timeout: getEnv("ML_TIMEOUT"),
   }
 };
