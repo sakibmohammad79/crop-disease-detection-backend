@@ -1,10 +1,12 @@
-// src/app/modules/ml/ml.controller.ts
+
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { catchAsync } from '../../utils/catchAsync';
 import { sendResponse } from '../../utils/response';
 import { MLService } from './ml.service';
 import { AppError } from '../../errors/AppError';
+import { Role } from '@prisma/client';
+import { ImageService } from '../images/image.service';
 
 const checkMLHealth = catchAsync(async (req: Request, res: Response) => {
   const result = await MLService.checkMLServiceHealth();
@@ -41,7 +43,7 @@ const predictImageDisease = catchAsync(async (req: Request, res: Response) => {
   }
 
   // Get image details from database
-  const { ImageService } = require('../image/image.service');
+
   const image = await ImageService.getImageById(imageId);
 
   if (!image) {
@@ -49,7 +51,7 @@ const predictImageDisease = catchAsync(async (req: Request, res: Response) => {
   }
 
   // Check if user owns the image or is admin
-  if (req.user?.role !== 'ADMIN' && image.userId !== userId) {
+  if (req.user?.role !== Role.ADMIN && image.userId !== userId) {
     throw new AppError(httpStatus.FORBIDDEN, 'Access denied');
   }
 
@@ -84,7 +86,7 @@ const batchPredict = catchAsync(async (req: Request, res: Response) => {
   }
 
   // Get images from database
-  const { ImageService } = require('../image/image.service');
+ 
   const images = await Promise.all(
     imageIds.map((id: string) => ImageService.getImageById(id).catch(() => null))
   );
