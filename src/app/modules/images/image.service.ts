@@ -108,7 +108,7 @@ const uploadImage = async (file: Express.Multer.File, userId: string) => {
       });
     }
 
-    // Clean up uploaded local file safely
+    // Clean up uploaded local file
     try {
       setTimeout(async () => {
         try {
