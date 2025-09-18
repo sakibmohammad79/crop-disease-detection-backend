@@ -11,8 +11,7 @@ import { Secret } from 'jsonwebtoken';
 import { config } from '../../config';
 import emailSender from '../../helpers/emailSender';
 
-
-export const registerFarmer = async (userData: RegisterFarmerInput) => {
+ const registerFarmer = async (userData: RegisterFarmerInput) => {
   const { farmerProfile, ...userInfo } = userData;
   // Hash password
   const hashedPassword = await hashPassword(userInfo.password);
@@ -41,7 +40,7 @@ export const registerFarmer = async (userData: RegisterFarmerInput) => {
 };
 
 
-export const registerAdmin = async (userData: RegisterAdminInput) => {
+ const registerAdmin = async (userData: RegisterAdminInput) => {
   const { adminProfile, ...userInfo } = userData;
   // Hash password
   const hashedPassword = await hashPassword(userInfo.password);
@@ -70,7 +69,7 @@ export const registerAdmin = async (userData: RegisterAdminInput) => {
 };
 
 // Login user
-export const loginUser = async (credentials: LoginInput) => {
+ const loginUser = async (credentials: LoginInput) => {
   const { email, password } = credentials;
 
   // Find user with profiles
@@ -127,7 +126,7 @@ export const loginUser = async (credentials: LoginInput) => {
 };
 
 
-export const refreshToken = async(token: string) => {
+ const refreshToken = async(token: string) => {
   
   let decodedData;
   
@@ -168,7 +167,7 @@ export const refreshToken = async(token: string) => {
 
 
 // Change password
-export const changeUserPassword = async (
+ const changeUserPassword = async (
   userId: string, 
   passwordData: ChangePasswordInput
 ) => {
@@ -206,7 +205,7 @@ export const changeUserPassword = async (
 
 
 // forgot password
-export const forgotPassword = async (payload: { email: string }) => {
+ const forgotPassword = async (payload: { email: string }) => {
   const userData = await prisma.user.findUnique({ 
     where: {
       email: payload.email,
@@ -269,7 +268,7 @@ export const forgotPassword = async (payload: { email: string }) => {
 // Reset password function to add to your auth service
 
 // Reset password
-export const resetPassword = async (payload: { 
+ const resetPassword = async (payload: { 
   userId: string; 
   token: string; 
   newPassword: string; 
@@ -328,3 +327,14 @@ export const resetPassword = async (payload: {
     message: 'Password reset successfully' 
   };
 };
+
+
+export const authService = {
+  registerAdmin,
+  registerFarmer,
+  loginUser,
+  refreshToken,
+  forgotPassword,
+  changeUserPassword,
+  resetPassword
+}

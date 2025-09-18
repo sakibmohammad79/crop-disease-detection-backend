@@ -1,9 +1,8 @@
-// modules/auth/auth.controller.ts
 import { Request, Response } from 'express';
 import { sendResponse } from '../../utils/response';
-import * as authService from './auth.service';
 import { config } from '../../config';
 import { catchAsync } from '../../utils/catchAsync';
+import { authService } from './auth.service';
 
 
 
