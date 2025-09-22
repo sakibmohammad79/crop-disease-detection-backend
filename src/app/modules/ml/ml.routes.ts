@@ -30,7 +30,6 @@ router.get(
 router.post(
   '/predict/:imageId',
   roleGuard([Role.ADMIN, Role.ADMIN]),
-  validateRequest(MLValidation.predictImageValidation),
   MLController.predictImageDisease
 );
 
