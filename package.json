@@ -7,7 +7,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "db:seed": "ts-node --skip-project prisma/seed.ts"
+    "db:seed": "ts-node --skip-project prisma/seed.ts",
+    "db:seed:diseases": "ts-node src/scripts/seed-diseases.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",

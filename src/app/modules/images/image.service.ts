@@ -102,9 +102,7 @@ const saveImageToDatabase = async (
   });
 };
 
-// ============================
-// 🤖 ML PREDICTION
-// ============================
+// Replace your processMLPrediction function (around line 83-148) with this:
 const processMLPrediction = async (savedImage: any) => {
   try {
     console.log(`🤖 Processing ML prediction for image: ${savedImage.id}`);
@@ -116,31 +114,90 @@ const processMLPrediction = async (savedImage: any) => {
     );
 
     if (mlResult.success) {
+      let diseaseId = null;
+      let diseaseRecord = null;
+
+      // Map ML prediction to existing seeded diseases
+      if (mlResult.prediction.is_healthy) {
+        // For healthy crops, use the "Healthy Crop" disease
+        diseaseRecord = await prisma.disease.findFirst({
+          where: { name: 'Healthy Crop' }
+        });
+      } else if (mlResult.prediction.disease) {
+        // Map ML disease to database disease
+        const diseaseMapping: Record<string, string> = {
+          'leaf_spot': 'Leaf Spot Disease',
+          'blight': 'Blight Disease', 
+          'rust': 'Rust Disease',
+          'bacterial_spot': 'Bacterial Spot',
+          'mosaic_virus': 'Mosaic Virus',
+          'healthy': 'Healthy Crop'
+        };
+
+        const mappedDiseaseName = diseaseMapping[mlResult.prediction.disease] 
+          || mlResult.prediction.disease_name 
+          || 'Leaf Spot Disease'; // Default fallback to existing disease
+
+        diseaseRecord = await prisma.disease.findFirst({
+          where: { 
+            name: {
+              equals: mappedDiseaseName,
+              mode: 'insensitive'
+            }
+          }
+        });
+      }
+
+      diseaseId = diseaseRecord?.id || null;
+
+      // Create prediction with proper disease linking
       const prediction = await prisma.prediction.create({
         data: {
           imageId: savedImage.id,
           confidence: mlResult.prediction.confidence,
           isHealthy: mlResult.prediction.is_healthy,
-          diseaseId: null,
+          diseaseId: diseaseId, // ✅ Now properly linked to seeded diseases
           affectedArea: mlResult.prediction.affected_area_percentage || 0,
           modelVersion: mlResult.prediction.model_version || 'v1.0',
           processingTime: mlResult.processingTime || 0,
         },
+        include: {
+          disease: true, // Include disease data in response
+        },
       });
+
+      // Create disease history if disease detected
+      if (diseaseId && diseaseRecord && !mlResult.prediction.is_healthy) {
+        await prisma.diseaseHistory.create({
+          data: {
+            userId: savedImage.userId,
+            diseaseId: diseaseId,
+            severity: diseaseRecord.severity,
+            location: 'Not specified',
+            cropType: 'Not specified',
+            detectedAt: new Date(),
+          }
+        }).catch(error => {
+          console.error('Failed to create disease history:', error);
+          // Don't throw error, just log it
+        });
+        console.log(`📊 Disease history recorded for: ${diseaseRecord.name}`);
+      }
 
       return {
         status: 'success',
         data: {
           id: prediction.id,
           disease: mlResult.prediction.disease,
-          diseaseName: mlResult.prediction.disease_name,
+          diseaseName: diseaseRecord?.name || mlResult.prediction.disease_name || 'Unknown Disease',
           confidence: mlResult.prediction.confidence,
           isHealthy: mlResult.prediction.is_healthy,
-          severity: mlResult.prediction.severity,
-          description: mlResult.prediction.description,
+          severity: diseaseRecord?.severity || mlResult.prediction.severity,
+          description: diseaseRecord?.description || mlResult.prediction.description,
           affectedArea: mlResult.prediction.affected_area_percentage,
-          treatment: mlResult.treatment,
+          treatment: diseaseRecord?.treatment || mlResult.treatment,
           processingTime: mlResult.processingTime,
+          diseaseRecord: diseaseRecord, // Full disease info from database
         },
         error: null
       };
@@ -160,6 +217,352 @@ const processMLPrediction = async (savedImage: any) => {
     return { status: 'failed', data: null, error: errorMessage };
   }
 };
+
+// Replace your reprocessImage function (around line 528-551) with this:
+const reprocessImage = async (id: string) => {
+  const image = await prisma.image.findUnique({ where: { id } });
+
+  if (!image) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Image not found');
+  }
+
+  try {
+    const mlResult = await MLService.predictDiseaseFromImageUrl(
+      image.processedPath!,
+      image.id,
+      image.userId
+    );
+
+    if (mlResult.success) {
+      let diseaseId = null;
+      let diseaseRecord = null;
+
+      // Use same mapping logic as processMLPrediction
+      if (mlResult.prediction.is_healthy) {
+        diseaseRecord = await prisma.disease.findFirst({
+          where: { name: 'Healthy Crop' }
+        });
+      } else if (mlResult.prediction.disease) {
+        const diseaseMapping: Record<string, string> = {
+          'leaf_spot': 'Leaf Spot Disease',
+          'blight': 'Blight Disease', 
+          'rust': 'Rust Disease',
+          'bacterial_spot': 'Bacterial Spot',
+          'mosaic_virus': 'Mosaic Virus',
+          'healthy': 'Healthy Crop'
+        };
+
+        const mappedDiseaseName = diseaseMapping[mlResult.prediction.disease] 
+          || mlResult.prediction.disease_name 
+          || 'Leaf Spot Disease';
+
+        diseaseRecord = await prisma.disease.findFirst({
+          where: { 
+            name: {
+              equals: mappedDiseaseName,
+              mode: 'insensitive'
+            }
+          }
+        });
+      }
+
+      diseaseId = diseaseRecord?.id || null;
+
+      await prisma.prediction.create({
+        data: {
+          imageId: image.id,
+          confidence: mlResult.prediction.confidence,
+          isHealthy: mlResult.prediction.is_healthy,
+          diseaseId: diseaseId, // ✅ Now properly linked
+          affectedArea: mlResult.prediction.affected_area_percentage || 0,
+          modelVersion: mlResult.prediction.model_version || 'v1.0',
+          processingTime: mlResult.processingTime || 0,
+        },
+      });
+    }
+
+    return { message: 'Image reprocessed successfully', mlResult };
+  } catch (error) {
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to reprocess image');
+  }
+};
+
+// ============================
+// 🦠 DISEASE MANAGEMENT FUNCTIONS
+// ============================
+const findOrCreateDisease = async (diseaseData: {
+  name: string;
+  scientificName?: string;
+  description?: string;
+  severity: string;
+  symptoms?: string[];
+  causes?: string[];
+  treatment?: string;
+  prevention?: string;
+  crops?: string[];
+}) => {
+  // First, try to find existing disease by name (case-insensitive)
+  let disease = await prisma.disease.findFirst({
+    where: {
+      name: {
+        equals: diseaseData.name,
+        mode: 'insensitive'
+      }
+    }
+  });
+
+  // If not found, create new disease record
+  if (!disease) {
+    disease = await prisma.disease.create({
+      data: {
+        name: diseaseData.name,
+        scientificName: diseaseData.scientificName,
+        description: diseaseData.description,
+        severity: diseaseData.severity as any, // Cast to enum
+        symptoms: diseaseData.symptoms || [],
+        causes: diseaseData.causes || [],
+        treatment: diseaseData.treatment,
+        prevention: diseaseData.prevention,
+        crops: diseaseData.crops || [],
+        isActive: true,
+      },
+    });
+
+    console.log(`🆕 Created new disease: ${disease.name} (ID: ${disease.id})`);
+  } else {
+    // Update existing disease with new information if provided
+    const updateData: any = {};
+    if (diseaseData.scientificName && !disease.scientificName) {
+      updateData.scientificName = diseaseData.scientificName;
+    }
+    if (diseaseData.description && !disease.description) {
+      updateData.description = diseaseData.description;
+    }
+    if (diseaseData.treatment && !disease.treatment) {
+      updateData.treatment = diseaseData.treatment;
+    }
+    if (diseaseData.prevention && !disease.prevention) {
+      updateData.prevention = diseaseData.prevention;
+    }
+    // Merge crops and symptoms arrays
+    if (diseaseData.crops?.length! > 0) {
+      const existingCrops = disease.crops || [];
+      const newCrops = [...new Set([...existingCrops, ...diseaseData.crops!])];
+      if (newCrops.length > existingCrops.length) {
+        updateData.crops = newCrops;
+      }
+    }
+    if (diseaseData.symptoms?.length! > 0) {
+      const existingSymptoms = disease.symptoms || [];
+      const newSymptoms = [...new Set([...existingSymptoms, ...diseaseData.symptoms!])];
+      if (newSymptoms.length > existingSymptoms.length) {
+        updateData.symptoms = newSymptoms;
+      }
+    }
+
+    // Update if there's new data
+    if (Object.keys(updateData).length > 0) {
+      disease = await prisma.disease.update({
+        where: { id: disease.id },
+        data: { ...updateData, updatedAt: new Date() },
+      });
+      console.log(`🔄 Updated disease: ${disease.name} with new data`);
+    }
+  }
+
+  return disease;
+};
+
+const createDiseaseHistory = async (historyData: {
+  userId: string;
+  diseaseId: string;
+  severity: string;
+  location?: string;
+  cropType?: string;
+  weatherData?: any;
+}) => {
+  try {
+    const diseaseHistory = await prisma.diseaseHistory.create({
+      data: {
+        userId: historyData.userId,
+        diseaseId: historyData.diseaseId,
+        severity: historyData.severity as any, // Cast to enum
+        location: historyData.location,
+        cropType: historyData.cropType,
+        weatherData: historyData.weatherData || null,
+        detectedAt: new Date(),
+      },
+    });
+
+    console.log(`📊 Disease history recorded: ${diseaseHistory.id}`);
+    return diseaseHistory;
+  } catch (error) {
+    console.error('❌ Failed to create disease history:', error);
+    // Don't throw error, just log it as this is supplementary data
+  }
+};
+
+// ============================
+// 📝 ENHANCED QUERY FUNCTIONS
+// ============================
+const getImageById = async (id: string) => {
+  const image = await prisma.image.findUnique({
+    where: { id },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      predictions: {
+        include: { 
+          disease: {
+            select: {
+              id: true,
+              name: true,
+              scientificName: true,
+              description: true,
+              severity: true,
+              symptoms: true,
+              causes: true,
+              treatment: true,
+              prevention: true,
+              crops: true,
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
+  });
+
+  if (!image) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Image not found');
+  }
+
+  return {
+    ...formatImageWithUrls(image),
+    mlAnalysis: {
+      totalPredictions: image.predictions.length,
+      latestPrediction: image.predictions.length > 0 ? image.predictions[0] : null,
+      hasDiseaseDetected: image.predictions.some(p => !p.isHealthy),
+      averageConfidence: image.predictions.length > 0
+        ? Math.round((image.predictions.reduce((sum, p) => sum + p.confidence, 0) / image.predictions.length) * 100)
+        : 0,
+      // Enhanced disease information
+      detectedDiseases: image.predictions
+        .filter(p => p.disease) // Include all predictions with disease data
+        .map(p => ({
+          id: p.disease!.id,
+          name: p.disease!.name,
+          scientificName: p.disease!.scientificName,
+          severity: p.disease!.severity,
+          confidence: Math.round(p.confidence * 100),
+          affectedArea: p.affectedArea,
+          symptoms: p.disease!.symptoms,
+          treatment: p.disease!.treatment,
+          prevention: p.disease!.prevention,
+          isHealthy: p.isHealthy,
+        })),
+    },
+  };
+};
+
+// ============================
+// 🔧 ENHANCED UTILITY FUNCTIONS
+// ============================
+const formatImageWithUrls = (image: any) => {
+  const latestPrediction = image.predictions?.length > 0 ? image.predictions[0] : null;
+  
+  return {
+    ...image,
+    urls: generateImageUrls(image),
+    transformedUrls: generateTransformedUrls(image.path),
+    mlSummary: latestPrediction ? {
+      hasPrediction: true,
+      isHealthy: latestPrediction.isHealthy,
+      confidence: Math.round(latestPrediction.confidence * 100),
+      diseaseName: latestPrediction.disease?.name || 'Unknown Disease',
+      severity: latestPrediction.disease?.severity || 'UNKNOWN',
+      affectedArea: latestPrediction.affectedArea || 0,
+      // Additional disease details
+      diseaseInfo: latestPrediction.disease ? {
+        id: latestPrediction.disease.id,
+        scientificName: latestPrediction.disease.scientificName,
+        description: latestPrediction.disease.description,
+        symptoms: latestPrediction.disease.symptoms,
+        treatment: latestPrediction.disease.treatment,
+        prevention: latestPrediction.disease.prevention,
+        crops: latestPrediction.disease.crops,
+      } : null,
+    } : {
+      hasPrediction: false,
+      isHealthy: null,
+      confidence: 0,
+      diseaseName: null,
+      severity: null,
+      affectedArea: 0,
+      diseaseInfo: null,
+    },
+  };
+};
+
+// ============================
+// 📊 DISEASE ANALYTICS
+// ============================
+const getDiseaseStats = async (userId?: string) => {
+  const where = userId ? { userId } : {};
+
+  const [commonDiseases, severityStats, recentDetections] = await Promise.all([
+    // Most common diseases
+    prisma.diseaseHistory.groupBy({
+      by: ['diseaseId'],
+      where,
+      _count: { diseaseId: true },
+      orderBy: { _count: { diseaseId: 'desc' } },
+      take: 10,
+    }).then(async (results) => {
+      const diseaseIds = results.map(r => r.diseaseId);
+      const diseases = await prisma.disease.findMany({
+        where: { id: { in: diseaseIds } },
+        select: { id: true, name: true, severity: true }
+      });
+      
+      return results.map(result => {
+        const disease = diseases.find(d => d.id === result.diseaseId);
+        return {
+          diseaseId: result.diseaseId,
+          diseaseName: disease?.name || 'Unknown',
+          severity: disease?.severity || 'UNKNOWN',
+          detectionCount: result._count.diseaseId,
+        };
+      });
+    }),
+
+    // Severity distribution
+    prisma.diseaseHistory.groupBy({
+      by: ['severity'],
+      where,
+      _count: { severity: true },
+    }),
+
+    // Recent detections (last 30 days)
+    prisma.diseaseHistory.count({
+      where: {
+        ...where,
+        detectedAt: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        }
+      }
+    }),
+  ]);
+
+  return {
+    commonDiseases,
+    severityStats,
+    recentDetections,
+    totalDiseaseTypes: await prisma.disease.count({ where: { isActive: true } }),
+  };
+};
+
+
+
 
 // ============================
 // 🧹 FILE CLEANUP SYSTEM
@@ -301,35 +704,6 @@ const getAllImages = async (query: any) => {
   };
 };
 
-const getImageById = async (id: string) => {
-  const image = await prisma.image.findUnique({
-    where: { id },
-    include: {
-      user: { select: { id: true, name: true, email: true } },
-      predictions: {
-        include: { disease: true },
-        orderBy: { createdAt: 'desc' },
-      },
-    },
-  });
-
-  if (!image) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Image not found');
-  }
-
-  return {
-    ...formatImageWithUrls(image),
-    mlAnalysis: {
-      totalPredictions: image.predictions.length,
-      latestPrediction: image.predictions.length > 0 ? image.predictions[0] : null,
-      hasDiseaseDetected: image.predictions.some(p => !p.isHealthy),
-      averageConfidence: image.predictions.length > 0
-        ? Math.round((image.predictions.reduce((sum, p) => sum + p.confidence, 0) / image.predictions.length) * 100)
-        : 0,
-    },
-  };
-};
-
 const getUserImages = async (userId: string, query: any) => {
   return await getAllImages({ ...query, userId });
 };
@@ -430,39 +804,6 @@ const getImageStats = async (userId?: string) => {
   };
 };
 
-const reprocessImage = async (id: string) => {
-  const image = await prisma.image.findUnique({ where: { id } });
-
-  if (!image) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Image not found');
-  }
-
-  try {
-    const mlResult = await MLService.predictDiseaseFromImageUrl(
-      image.processedPath!,
-      image.id,
-      image.userId
-    );
-
-    if (mlResult.success) {
-      await prisma.prediction.create({
-        data: {
-          imageId: image.id,
-          confidence: mlResult.prediction.confidence,
-          isHealthy: mlResult.prediction.is_healthy,
-          diseaseId: null,
-          affectedArea: mlResult.prediction.affected_area_percentage || 0,
-          modelVersion: mlResult.prediction.model_version || 'v1.0',
-          processingTime: mlResult.processingTime || 0,
-        },
-      });
-    }
-
-    return { message: 'Image reprocessed successfully', mlResult };
-  } catch (error) {
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to reprocess image');
-  }
-};
 
 // ============================
 // 🔧 UTILITY FUNCTIONS
@@ -478,26 +819,7 @@ const formatImageResponse = (savedImage: any, mlResult: any) => {
   };
 };
 
-const formatImageWithUrls = (image: any) => {
-  return {
-    ...image,
-    urls: generateImageUrls(image),
-    transformedUrls: generateTransformedUrls(image.path),
-    mlSummary: image.predictions?.length > 0 ? {
-      hasPrediction: true,
-      isHealthy: image.predictions[0].isHealthy,
-      confidence: Math.round(image.predictions[0].confidence * 100),
-      diseaseName: image.predictions[0].disease?.name || 'Unknown',
-      severity: image.predictions[0].disease?.severity || 'UNKNOWN',
-    } : {
-      hasPrediction: false,
-      isHealthy: null,
-      confidence: 0,
-      diseaseName: null,
-      severity: null,
-    },
-  };
-};
+
 
 const generateImageUrls = (image: any) => ({
   original: image.path,
@@ -524,3 +846,6 @@ export const ImageService = {
   getImageStats,
   reprocessImage,
 };
+
+
+
